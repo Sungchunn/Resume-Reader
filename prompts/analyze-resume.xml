@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OpenAI Prompt: Resume Analysis (CARE Framework)
+  Model: gpt-4-turbo-preview
+  Temperature: 0.3
+  Max Tokens: 2500
+-->
+
+<resume_analysis_task>
+  <!-- CONTEXT: Provide background information -->
+  <context>
+    <user_profile>
+      <current_resume><![CDATA[{{RESUME_TEXT}}]]></current_resume>
+      <target_roles><![CDATA[{{TARGET_ROLES}}]]></target_roles>
+      <career_level>{{CAREER_LEVEL}}</career_level>
+    </user_profile>
+
+    <analysis_purpose>
+      The candidate is applying for roles in: {{TARGET_ROLES}}
+      This analysis will identify gaps between their current resume and target roles,
+      focusing on ATS optimization, keyword alignment, and content effectiveness.
+    </analysis_purpose>
+
+    <industry_context>
+      Modern ATS systems scan for:
+      - Relevant keywords and technical skills
+      - Quantifiable achievements and metrics
+      - Clear section headers (Summary, Experience, Education, Skills)
+      - Proper formatting (bullet points, consistent dates, no tables/graphics)
+      - Action verbs and impact statements
+    </industry_context>
+  </context>
+
+  <!-- ACTION: Specific instructions -->
+  <action>
+    <primary_tasks>
+      <task id="1">Analyze the resume against target roles</task>
+      <task id="2">Identify missing keywords and skills</task>
+      <task id="3">Evaluate structure and formatting for ATS compatibility</task>
+      <task id="4">Assess quantifiable results and impact statements</task>
+      <task id="5">Identify gaps in experience or qualifications</task>
+      <task id="6">Provide specific, actionable improvement suggestions</task>
+    </primary_tasks>
+
+    <analysis_criteria>
+      <criterion weight="30">Keyword Alignment: Match with target role requirements</criterion>
+      <criterion weight="25">Quantifiable Results: Metrics, percentages, dollar amounts</criterion>
+      <criterion weight="20">ATS Compatibility: Structure, formatting, section headers</criterion>
+      <criterion weight="15">Action Verbs: Strong, impactful language</criterion>
+      <criterion weight="10">Relevance: Focus on applicable experience</criterion>
+    </analysis_criteria>
+  </action>
+
+  <!-- RESULT: Expected output format -->
+  <expected_output>
+    <output_format>
+      <gap_analysis>
+        <missing_keywords>
+          <keyword priority="high">Example: Python</keyword>
+          <keyword priority="high">Example: Machine Learning</keyword>
+          <keyword priority="medium">Example: Agile</keyword>
+        </missing_keywords>
+
+        <missing_skills>
+          <skill category="technical">Example: Cloud platforms (AWS/Azure)</skill>
+          <skill category="soft">Example: Team leadership</skill>
+        </missing_skills>
+
+        <weak_sections>
+          <section name="Professional Summary">
+            <issue>Too generic, lacks specific achievements</issue>
+            <suggestion>Add 2-3 key accomplishments with metrics</suggestion>
+          </section>
+          <section name="Work Experience">
+            <issue>Missing quantifiable results in 60% of bullet points</issue>
+            <suggestion>Add metrics: "Increased X by Y%"</suggestion>
+          </section>
+        </weak_sections>
+
+        <ats_issues>
+          <issue severity="high">No clear section headers</issue>
+          <issue severity="medium">Inconsistent date formatting</issue>
+          <issue severity="low">Some text in tables (not ATS-friendly)</issue>
+        </ats_issues>
+      </gap_analysis>
+
+      <improvement_priorities>
+        <priority rank="1">Add 5-7 key technical keywords for target roles</priority>
+        <priority rank="2">Quantify achievements with specific metrics</priority>
+        <priority rank="3">Restructure with clear ATS-friendly sections</priority>
+        <priority rank="4">Rewrite summary to highlight relevant skills</priority>
+        <priority rank="5">Use strong action verbs (Led, Developed, Increased)</priority>
+      </improvement_priorities>
+
+      <keyword_recommendations>
+        <role>{{TARGET_ROLES}}</role>
+        <must_have_keywords>
+          <keyword>Example: Specific tool/technology</keyword>
+        </must_have_keywords>
+        <nice_to_have_keywords>
+          <keyword>Example: Industry buzzword</keyword>
+        </nice_to_have_keywords>
+      </keyword_recommendations>
+    </output_format>
+
+    <output_constraints>
+      <constraint>Return valid XML matching the schema above</constraint>
+      <constraint>Be specific: cite actual content from resume</constraint>
+      <constraint>Prioritize: focus on high-impact changes first</constraint>
+      <constraint>Be actionable: provide concrete examples</constraint>
+    </output_constraints>
+  </expected_output>
+
+  <!-- EXAMPLE: Sample input/output to guide the model -->
+  <example>
+    <sample_input>
+      <resume_excerpt>
+        "Software Developer at Tech Corp
+        - Worked on web applications
+        - Helped team with coding
+        - Participated in meetings"
+      </resume_excerpt>
+      <target_role>Senior Full-Stack Developer</target_role>
+    </sample_input>
+
+    <sample_output>
+      <gap_analysis>
+        <missing_keywords>
+          <keyword priority="high">React</keyword>
+          <keyword priority="high">Node.js</keyword>
+          <keyword priority="high">TypeScript</keyword>
+          <keyword priority="medium">CI/CD</keyword>
+        </missing_keywords>
+
+        <weak_sections>
+          <section name="Work Experience">
+            <issue>Weak action verbs: "worked on", "helped", "participated"</issue>
+            <issue>No quantifiable results or metrics</issue>
+            <issue>Missing technical stack details</issue>
+            <suggestion>Rewrite: "Developed 15+ responsive web applications using React and Node.js, improving user engagement by 40%"</suggestion>
+          </section>
+        </weak_sections>
+      </gap_analysis>
+    </sample_output>
+  </example>
+</resume_analysis_task>
