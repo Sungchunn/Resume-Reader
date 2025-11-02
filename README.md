@@ -1,50 +1,39 @@
 # Resume Analyzer
 
-AI-powered resume analysis and optimization tool using OpenAI API and n8n automation.
+Simple React frontend that uploads resumes to n8n webhook and displays results.
 
-## Features
+## Quick Start
 
-- Upload PDF/DOCX resumes
-- AI-powered resume analysis and improvement
-- ATS score optimization
-- Target role customization
-- Interactive chatbot for resume questions
-- Professional Word/PDF output with Canva formatting
-
-## Setup
-
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Configure webhooks in `src/App.js`:
-   - `UPLOAD_WEBHOOK`: Your n8n endpoint for resume upload
-   - `CHAT_WEBHOOK`: Your n8n endpoint for chatbot
-
-3. Start development server:
-```bash
 npm start
 ```
 
-## n8n Workflow
+Visit `http://localhost:3000`
 
-The backend workflow should:
-1. Parse uploaded resume (PDF/DOCX → text)
-2. Call OpenAI API with CARE framework prompts
-3. Use XML prompting for structured output
-4. Format resume with proper structure
-5. Generate Word/PDF files
-6. Return JSON with download links
+## How It Works
 
-## Prompting Strategy
+1. User uploads PDF/DOCX resume
+2. User enters target roles
+3. Frontend sends to n8n webhook: `https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788`
+4. n8n processes and returns results
+5. Frontend displays ATS score and download links
 
-- **CARE Framework**: Context, Action, Result, Example
-- **XML Prompting**: Structured input/output for better results
+## Expected Webhook Response
 
-## Requirements
+```json
+{
+  "ats_score": 85,
+  "improved_markdown": "# John Doe\n\n...",
+  "docx_url": "https://...",
+  "pdf_url": "https://...",
+  "gap_analysis": { ... }
+}
+```
 
-- Node.js 16+
-- n8n instance (cloud or self-hosted)
-- OpenAI API key
-- Canva Enterprise API (optional)
+## Change Webhook URL
+
+Edit line 3 in `src/App.js`:
+```javascript
+const UPLOAD_WEBHOOK = "YOUR_WEBHOOK_URL";
+```
