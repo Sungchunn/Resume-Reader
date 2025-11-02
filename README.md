@@ -14,11 +14,12 @@ Visit `http://localhost:3000`
 ## How It Works
 
 1. User enters **Job Title** they're applying for
-2. User pastes **Job Description**
-3. User uploads their **Resume** (PDF/DOCX)
-4. Frontend sends all data to n8n webhook
-5. n8n processes and returns improved resume
-6. Frontend displays ATS score and download links
+2. User enters **Company Website URL** (optional)
+3. User pastes **Job Description**
+4. User uploads their **Resume** (PDF/DOCX)
+5. Frontend sends all data to n8n webhook
+6. n8n processes and returns improved resume
+7. Frontend displays ATS score and download links
 
 ## Webhook Data Sent
 
@@ -28,6 +29,7 @@ POST https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d
 FormData:
 - file: [binary PDF/DOCX]
 - job_title: "Senior Software Engineer"
+- company_url: "https://www.company.com" (optional)
 - job_description: "We are looking for..."
 ```
 

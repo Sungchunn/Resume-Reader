@@ -19,6 +19,7 @@ function humanFileSize(bytes) {
 export default function App() {
   const [file, setFile] = useState(null);
   const [jobTitle, setJobTitle] = useState("");
+  const [companyUrl, setCompanyUrl] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -59,6 +60,9 @@ export default function App() {
       form.append("file", file, file.name);
       form.append("job_title", jobTitle.trim());
       form.append("job_description", jobDescription.trim());
+      if (companyUrl.trim()) {
+        form.append("company_url", companyUrl.trim());
+      }
 
       // For debugging: log what's being sent
       for (let [key, val] of form.entries()) {
@@ -82,7 +86,7 @@ export default function App() {
     } finally {
       setSubmitting(false);
     }
-  }, [file, jobTitle, jobDescription]);
+  }, [file, jobTitle, companyUrl, jobDescription]);
 
   return (
     <div style={styles.page}>
@@ -103,6 +107,15 @@ export default function App() {
             onChange={(e) => setJobTitle(e.target.value)}
             placeholder="e.g., Senior Software Engineer"
             style={styles.input}
+          />
+
+          <label style={styles.label}>Company Website URL</label>
+          <input
+            value={companyUrl}
+            onChange={(e) => setCompanyUrl(e.target.value)}
+            placeholder="e.g., https://www.company.com"
+            style={styles.input}
+            type="url"
           />
 
           <label style={styles.label}>Job Description *</label>
