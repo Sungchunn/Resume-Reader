@@ -50,6 +50,7 @@ export default function App() {
 
   const submitUpload = useCallback(async () => {
     setUploadError("");
+    setResult(null); // Clear previous results
     if (!file) return setUploadError("Please select a PDF or DOCX file.");
     if (!jobTitle.trim()) return setUploadError("Please enter the job title.");
     if (!jobDescription.trim()) return setUploadError("Please enter the job description.");
@@ -65,8 +66,13 @@ export default function App() {
       }
 
       // For debugging: log what's being sent
+      console.log("Sending to webhook:", UPLOAD_WEBHOOK);
       for (let [key, val] of form.entries()) {
-        console.log("FormData:", key, val);
+        if (key === 'file') {
+          console.log(`FormData: ${key} =`, val.name, val.type, val.size);
+        } else {
+          console.log(`FormData: ${key} =`, val);
+        }
       }
 
       const res = await fetch(UPLOAD_WEBHOOK, {
@@ -80,8 +86,10 @@ export default function App() {
       }
 
       const json = await res.json();
+      console.log("Webhook response:", json);
       setResult(json);
     } catch (err) {
+      console.error("Upload error:", err);
       setUploadError(err.message || "Unexpected error occurred.");
     } finally {
       setSubmitting(false);
@@ -107,6 +115,7 @@ export default function App() {
             onChange={(e) => setJobTitle(e.target.value)}
             placeholder="e.g., Senior Software Engineer"
             style={styles.input}
+            disabled={submitting}
           />
 
           <label style={styles.label}>Company Website URL</label>
@@ -116,6 +125,7 @@ export default function App() {
             placeholder="e.g., https://www.company.com"
             style={styles.input}
             type="url"
+            disabled={submitting}
           />
 
           <label style={styles.label}>Job Description *</label>
@@ -125,6 +135,7 @@ export default function App() {
             placeholder="Paste the full job description here..."
             style={styles.textarea}
             rows={8}
+            disabled={submitting}
           />
 
           <label style={styles.label}>Your Resume (PDF/DOCX) *</label>
@@ -132,13 +143,18 @@ export default function App() {
             onDrop={onDrop}
             onDragOver={prevent}
             onDragEnter={prevent}
-            style={styles.dropzone}
+            style={{
+              ...styles.dropzone,
+              opacity: submitting ? 0.6 : 1,
+              pointerEvents: submitting ? 'none' : 'auto'
+            }}
           >
             <input
               type="file"
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={onPickFile}
               style={styles.fileInput}
+              disabled={submitting}
             />
             <div style={{ textAlign: "center", pointerEvents: "none" }}>
               <div style={{ fontWeight: 600 }}>Drop PDF/DOCX here or click to browse</div>
@@ -160,6 +176,18 @@ export default function App() {
           >
             {submitting ? "Processing…" : "Analyze Résumé"}
           </button>
+
+          {submitting && (
+            <div style={styles.loadingBox}>
+              <div style={styles.spinner}></div>
+              <div style={{ marginTop: 12 }}>
+                <strong>Analyzing your resume...</strong>
+                <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+                  This may take 20-30 seconds. Please wait.
+                </div>
+              </div>
+            </div>
+          )}
 
           {result && (
             <div style={{ marginTop: 20 }}>
@@ -272,6 +300,23 @@ const styles = {
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
+  },
+  loadingBox: {
+    marginTop: 20,
+    padding: 20,
+    background: "#eef2ff",
+    border: "1px solid #c7d2fe",
+    borderRadius: 10,
+    textAlign: "center",
+  },
+  spinner: {
+    width: 40,
+    height: 40,
+    margin: "0 auto",
+    border: "4px solid #e5e7eb",
+    borderTop: "4px solid #4f46e5",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   },
   kv: { fontSize: 14, margin: "6px 0" },
   details: {
