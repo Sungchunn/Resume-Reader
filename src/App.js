@@ -18,8 +18,8 @@ function humanFileSize(bytes) {
 
 export default function App() {
   const [file, setFile] = useState(null);
-  const [targetRoles, setTargetRoles] = useState("");
-  const [email, setEmail] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [uploadError, setUploadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -50,14 +50,15 @@ export default function App() {
   const submitUpload = useCallback(async () => {
     setUploadError("");
     if (!file) return setUploadError("Please select a PDF or DOCX file.");
-    if (!targetRoles.trim()) return setUploadError("Please enter target role(s).");
+    if (!jobTitle.trim()) return setUploadError("Please enter the job title.");
+    if (!jobDescription.trim()) return setUploadError("Please enter the job description.");
 
     try {
       setSubmitting(true);
       const form = new FormData();
       form.append("file", file, file.name);
-      form.append("target_roles", targetRoles.trim());
-      if (email.trim()) form.append("email", email.trim());
+      form.append("job_title", jobTitle.trim());
+      form.append("job_description", jobDescription.trim());
 
       // For debugging: log what's being sent
       for (let [key, val] of form.entries()) {
@@ -81,21 +82,39 @@ export default function App() {
     } finally {
       setSubmitting(false);
     }
-  }, [file, targetRoles, email]);
+  }, [file, jobTitle, jobDescription]);
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <h1 style={{ margin: 0, fontSize: 22 }}>Résumé Analyzer</h1>
         <div style={{ color: "#6b7280", fontSize: 14 }}>
-          Upload résumé (PDF/DOCX) + specify target roles.
+          Upload your resume and enter the job details you're applying for.
         </div>
       </header>
 
       <main style={styles.main}>
         <section style={styles.card}>
-          <h2 style={styles.h2}>Upload</h2>
+          <h2 style={styles.h2}>Job Application Details</h2>
 
+          <label style={styles.label}>Job Title *</label>
+          <input
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            placeholder="e.g., Senior Software Engineer"
+            style={styles.input}
+          />
+
+          <label style={styles.label}>Job Description *</label>
+          <textarea
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the full job description here..."
+            style={styles.textarea}
+            rows={8}
+          />
+
+          <label style={styles.label}>Your Resume (PDF/DOCX) *</label>
           <div
             onDrop={onDrop}
             onDragOver={prevent}
@@ -114,23 +133,6 @@ export default function App() {
               {fileInfo && <div style={{ marginTop: 8 }}>{fileInfo}</div>}
             </div>
           </div>
-
-          <label style={styles.label}>Target role(s)</label>
-          <input
-            value={targetRoles}
-            onChange={(e) => setTargetRoles(e.target.value)}
-            placeholder="e.g., Sales Automation Specialist; RevOps Engineer"
-            style={styles.input}
-          />
-
-          <label style={styles.label}>Email (optional)</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            style={styles.input}
-          />
 
           {uploadError && <div style={styles.error}>{uploadError}</div>}
 
@@ -202,7 +204,7 @@ const styles = {
     border: "1px solid #e5e7eb",
     borderRadius: 12,
     padding: 20,
-    maxWidth: 600,
+    maxWidth: 700,
     width: "100%",
     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
   },
@@ -218,7 +220,7 @@ const styles = {
     cursor: "pointer",
   },
   fileInput: { position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%" },
-  label: { display: "block", fontSize: 13, marginTop: 8, marginBottom: 4 },
+  label: { display: "block", fontSize: 13, fontWeight: 600, marginTop: 12, marginBottom: 4 },
   input: {
     width: "100%",
     border: "1px solid #e5e7eb",
@@ -226,6 +228,18 @@ const styles = {
     padding: "10px 12px",
     outline: "none",
     marginBottom: 10,
+    fontSize: 14,
+  },
+  textarea: {
+    width: "100%",
+    border: "1px solid #e5e7eb",
+    borderRadius: 10,
+    padding: "10px 12px",
+    outline: "none",
+    marginBottom: 10,
+    fontSize: 14,
+    fontFamily: "sans-serif",
+    resize: "vertical",
   },
   button: {
     background: "#4f46e5",
@@ -234,6 +248,9 @@ const styles = {
     borderRadius: 10,
     padding: "10px 14px",
     fontWeight: 600,
+    width: "100%",
+    fontSize: 15,
+    marginTop: 8,
   },
   error: {
     background: "#fef2f2",
