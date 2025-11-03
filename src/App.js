@@ -191,7 +191,14 @@ export default function App() {
 
           {result && (
             <div style={{ marginTop: 20 }}>
-              <h3 style={styles.h3}>Results</h3>
+              <h3 style={styles.h3}>Webhook Response</h3>
+
+              <details style={styles.details}>
+                <summary style={styles.summary}>Raw Response (JSON)</summary>
+                <pre style={styles.pre}>{JSON.stringify(result, null, 2)}</pre>
+              </details>
+
+              <h3 style={styles.h3}>Parsed Results</h3>
               {result.ats_score && (
                 <div style={styles.kv}>
                   <strong>ATS Score:</strong> {result.ats_score}
