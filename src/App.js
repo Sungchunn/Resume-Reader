@@ -86,53 +86,87 @@ const App = () => {
             if (ct.includes('json')) {
                 const jsonData = await response.json();
 
-                // Parse the output structure: [{ output: "stringified json" }]
+                console.log('Received JSON response:', jsonData);
+
+                // Try to parse different response formats
+                let analysisJson = null;
+                let pdfSource = null;
+
+                // Format 1: Array with output field [{ output: "stringified json" }]
                 if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].output) {
-                    const analysisJson = JSON.parse(jsonData[0].output);
+                    try {
+                        analysisJson = JSON.parse(jsonData[0].output);
+                        console.log('Parsed analysis from array format:', analysisJson);
+
+                        // Check for PDF in array object
+                        if (jsonData[0].pdf_url) {
+                            pdfSource = jsonData[0].pdf_url;
+                        } else if (jsonData[0].pdf_data) {
+                            pdfSource = 'base64:' + jsonData[0].pdf_data;
+                        }
+                    } catch (parseError) {
+                        console.error('Failed to parse output field:', parseError);
+                        throw new Error('Failed to parse analysis JSON from output field');
+                    }
+                }
+                // Format 2: Direct object with analysis fields
+                else if (jsonData && typeof jsonData === 'object' && !Array.isArray(jsonData)) {
+                    analysisJson = jsonData;
+                    console.log('Using direct object format:', analysisJson);
+                }
+                // Format 3: Array with direct objects
+                else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].overall_score !== undefined) {
+                    analysisJson = jsonData[0];
+                    console.log('Using first array item as analysis:', analysisJson);
+                }
+                else {
+                    console.error('Unrecognized response format:', jsonData);
+                    throw new Error(`Unexpected response format. Received: ${JSON.stringify(jsonData).substring(0, 200)}...`);
+                }
+
+                // Set analysis data
+                if (analysisJson) {
                     setAnalysisData(analysisJson);
 
-                    // Check for PDF data in multiple possible locations
-                    let pdfSource = null;
-
-                    // 1. Check for pdf_url in the parsed analysis
-                    if (analysisJson.pdf_url) {
+                    // Check for PDF URL in the parsed analysis itself
+                    if (!pdfSource && analysisJson.pdf_url) {
                         pdfSource = analysisJson.pdf_url;
                     }
-                    // 2. Check for pdf_url in the first object of response array
-                    else if (jsonData[0].pdf_url) {
-                        pdfSource = jsonData[0].pdf_url;
-                    }
-                    // 3. Check for base64 PDF data
-                    else if (jsonData[0].pdf_data) {
-                        // Convert base64 to blob
-                        const binaryString = atob(jsonData[0].pdf_data);
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) {
-                            bytes[i] = binaryString.charCodeAt(i);
-                        }
-                        const blob = new Blob([bytes], { type: 'application/pdf' });
-                        setPdfBlob(blob);
-                        pdfSource = 'embedded';
-                    }
 
-                    // Fetch PDF from URL if provided
-                    if (pdfSource && pdfSource !== 'embedded') {
-                        try {
-                            const pdfResponse = await fetch(pdfSource);
-                            const pdfBlob = await pdfResponse.blob();
-                            setPdfBlob(pdfBlob);
-                        } catch (pdfError) {
-                            console.error('Failed to fetch PDF:', pdfError);
-                            // Analysis will still be shown without PDF
+                    // Handle PDF source
+                    if (pdfSource) {
+                        if (pdfSource.startsWith('base64:')) {
+                            // Convert base64 to blob
+                            try {
+                                const base64Data = pdfSource.substring(7);
+                                const binaryString = atob(base64Data);
+                                const bytes = new Uint8Array(binaryString.length);
+                                for (let i = 0; i < binaryString.length; i++) {
+                                    bytes[i] = binaryString.charCodeAt(i);
+                                }
+                                const blob = new Blob([bytes], { type: 'application/pdf' });
+                                setPdfBlob(blob);
+                                console.log('Converted base64 PDF to blob');
+                            } catch (b64Error) {
+                                console.error('Failed to decode base64 PDF:', b64Error);
+                            }
+                        } else {
+                            // Fetch from URL
+                            try {
+                                console.log('Fetching PDF from:', pdfSource);
+                                const pdfResponse = await fetch(pdfSource);
+                                const pdfBlob = await pdfResponse.blob();
+                                setPdfBlob(pdfBlob);
+                                console.log('Successfully fetched PDF from URL');
+                            } catch (pdfError) {
+                                console.error('Failed to fetch PDF:', pdfError);
+                            }
                         }
-                    }
-
-                    // If no PDF source found, analysis will be shown without PDF
-                    if (!pdfSource) {
-                        console.warn('No PDF data found in response. Add "pdf_url" or "pdf_data" to your n8n response.');
+                    } else {
+                        console.warn('No PDF data found in response. Analysis will be shown without PDF.');
                     }
                 } else {
-                    throw new Error('Unexpected response format. Expected: [{ output: "json string", pdf_url: "..." }]');
+                    throw new Error('Could not extract analysis data from response');
                 }
             }
             // Handle PDF response directly
