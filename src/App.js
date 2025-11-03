@@ -96,6 +96,72 @@ export default function App() {
     }
   }, [file, jobTitle, companyUrl, jobDescription]);
 
+  const renderValue = (value) => {
+    if (value === null || value === undefined) {
+      return <span style={{ color: "#9ca3af", fontStyle: "italic" }}>null</span>;
+    }
+    if (typeof value === 'boolean') {
+      return <span style={{ color: "#059669" }}>{value.toString()}</span>;
+    }
+    if (typeof value === 'number') {
+      return <span style={{ color: "#0891b2" }}>{value}</span>;
+    }
+    if (typeof value === 'string') {
+      if (value.length > 100) {
+        return (
+          <details style={{ display: "inline-block" }}>
+            <summary style={{ cursor: "pointer", color: "#4f46e5" }}>
+              {value.substring(0, 100)}... (click to expand)
+            </summary>
+            <pre style={{
+              marginTop: 8,
+              padding: 8,
+              background: "#f9fafb",
+              borderRadius: 6,
+              fontSize: 12,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word"
+            }}>{value}</pre>
+          </details>
+        );
+      }
+      return <span style={{ color: "#6b7280" }}>{value}</span>;
+    }
+    if (Array.isArray(value)) {
+      return (
+        <details style={{ marginLeft: 16 }}>
+          <summary style={{ cursor: "pointer", color: "#7c3aed" }}>
+            Array ({value.length} items)
+          </summary>
+          <div style={{ marginLeft: 16, marginTop: 4 }}>
+            {value.map((item, idx) => (
+              <div key={idx} style={{ marginBottom: 4 }}>
+                <strong>[{idx}]:</strong> {renderValue(item)}
+              </div>
+            ))}
+          </div>
+        </details>
+      );
+    }
+    if (typeof value === 'object') {
+      return (
+        <details style={{ marginLeft: 16 }}>
+          <summary style={{ cursor: "pointer", color: "#7c3aed" }}>
+            Object ({Object.keys(value).length} keys)
+          </summary>
+          <div style={{ marginLeft: 16, marginTop: 4 }}>
+            {Object.entries(value).map(([k, v]) => (
+              <div key={k} style={{ marginBottom: 8 }}>
+                <strong style={{ color: "#4338ca" }}>{k}:</strong> {renderValue(v)}
+              </div>
+            ))}
+          </div>
+        </details>
+      );
+    }
+    return <span>{String(value)}</span>;
+  };
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -193,10 +259,14 @@ export default function App() {
             <div style={{ marginTop: 20 }}>
               <h3 style={styles.h3}>Webhook Response</h3>
 
-              <details style={styles.details}>
-                <summary style={styles.summary}>Raw Response (JSON)</summary>
-                <pre style={styles.pre}>{JSON.stringify(result, null, 2)}</pre>
-              </details>
+              <div style={styles.responseBox}>
+                {Object.entries(result).map(([key, value]) => (
+                  <div key={key} style={styles.responseRow}>
+                    <div style={styles.responseKey}>{key}:</div>
+                    <div style={styles.responseValue}>{renderValue(value)}</div>
+                  </div>
+                ))}
+              </div>
 
               <h3 style={styles.h3}>Parsed Results</h3>
               {result.ats_score && (
@@ -324,6 +394,30 @@ const styles = {
     borderTop: "4px solid #4f46e5",
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
+  },
+  responseBox: {
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+    borderRadius: 10,
+    padding: 16,
+    fontSize: 14,
+  },
+  responseRow: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottom: "1px solid #e5e7eb",
+  },
+  responseKey: {
+    fontWeight: 700,
+    color: "#4338ca",
+    marginBottom: 4,
+    fontSize: 13,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  },
+  responseValue: {
+    color: "#111827",
+    lineHeight: 1.6,
   },
   kv: { fontSize: 14, margin: "6px 0" },
   details: {
