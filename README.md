@@ -95,11 +95,13 @@ const PDF_WEBHOOK = "YOUR_PDF_WEBHOOK_URL";
 
 ### Documentation
 
-- **DUAL_WEBHOOK_GUIDE.md** - ⭐ Dual webhook architecture and setup
-- **ROUTING_GUIDE.md** - Multi-page routing and dark mode details
-- **N8N_RESPONSE_GUIDE.md** - How to configure your n8n webhook
-- **DISPLAY_GUIDE.md** - Display structure and troubleshooting
-- **N8N_WEBHOOK_SETUP.md** - Webhook node configuration
+- **[DUAL_WEBHOOK_GUIDE.md](docs/DUAL_WEBHOOK_GUIDE.md)** - ⭐ Dual webhook architecture and setup
+- **[ROUTING_GUIDE.md](docs/ROUTING_GUIDE.md)** - Multi-page routing and dark mode details
+- **[N8N_RESPONSE_GUIDE.md](docs/N8N_RESPONSE_GUIDE.md)** - How to configure your n8n webhook
+- **[N8N_WEBHOOK_SETUP.md](docs/N8N_WEBHOOK_SETUP.md)** - Webhook node configuration
+- **[DISPLAY_GUIDE.md](docs/DISPLAY_GUIDE.md)** - Display structure and troubleshooting
+
+All documentation is organized in the [`docs/`](docs/) folder.
 
 ## Dark Mode
 
