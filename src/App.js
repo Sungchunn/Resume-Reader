@@ -91,14 +91,48 @@ const App = () => {
                     const analysisJson = JSON.parse(jsonData[0].output);
                     setAnalysisData(analysisJson);
 
-                    // If PDF URL is provided in the analysis, fetch it
+                    // Check for PDF data in multiple possible locations
+                    let pdfSource = null;
+
+                    // 1. Check for pdf_url in the parsed analysis
                     if (analysisJson.pdf_url) {
-                        const pdfResponse = await fetch(analysisJson.pdf_url);
-                        const pdfBlob = await pdfResponse.blob();
-                        setPdfBlob(pdfBlob);
+                        pdfSource = analysisJson.pdf_url;
+                    }
+                    // 2. Check for pdf_url in the first object of response array
+                    else if (jsonData[0].pdf_url) {
+                        pdfSource = jsonData[0].pdf_url;
+                    }
+                    // 3. Check for base64 PDF data
+                    else if (jsonData[0].pdf_data) {
+                        // Convert base64 to blob
+                        const binaryString = atob(jsonData[0].pdf_data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        const blob = new Blob([bytes], { type: 'application/pdf' });
+                        setPdfBlob(blob);
+                        pdfSource = 'embedded';
+                    }
+
+                    // Fetch PDF from URL if provided
+                    if (pdfSource && pdfSource !== 'embedded') {
+                        try {
+                            const pdfResponse = await fetch(pdfSource);
+                            const pdfBlob = await pdfResponse.blob();
+                            setPdfBlob(pdfBlob);
+                        } catch (pdfError) {
+                            console.error('Failed to fetch PDF:', pdfError);
+                            // Analysis will still be shown without PDF
+                        }
+                    }
+
+                    // If no PDF source found, analysis will be shown without PDF
+                    if (!pdfSource) {
+                        console.warn('No PDF data found in response. Add "pdf_url" or "pdf_data" to your n8n response.');
                     }
                 } else {
-                    throw new Error('Unexpected response format');
+                    throw new Error('Unexpected response format. Expected: [{ output: "json string", pdf_url: "..." }]');
                 }
             }
             // Handle PDF response directly
