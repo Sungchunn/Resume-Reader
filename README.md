@@ -43,44 +43,59 @@ Visit `http://localhost:3000`
 - Download improved resume
 - Navigate back to analysis
 
-## Webhook Data Sent
+## Dual Webhook Architecture
 
+The app uses **two separate webhooks** called in parallel for optimal performance:
+
+### 1. Analysis Webhook (Returns JSON)
 ```
 POST https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788
 
 FormData:
-- file: [binary PDF/DOCX]
+- file: [binary PDF]
 - job_title: "Senior Software Engineer"
 - company_url: "https://www.company.com" (optional)
 - job_description: "We are looking for..."
 ```
 
-## Expected Webhook Response
-
+**Expected Response:**
 ```json
 [
   {
-    "output": "{\"overall_score\": 81, \"category_scores\": {...}, ...}",
-    "pdf_url": "https://storage.example.com/improved-resume.pdf"
+    "output": "{\"overall_score\": 81, \"category_scores\": {...}, ...}"
   }
 ]
 ```
 
-**Required fields:**
-- `output` - Stringified JSON with analysis data
-- `pdf_url` or `pdf_data` - Link to improved PDF or base64 data
+### 2. PDF Webhook (Returns PDF Binary)
+```
+POST https://shreyahubcredo.app.n8n.cloud/webhook-test/20db4528-631d-42c0-858d-930ba828178d
+
+FormData: (same as analysis webhook)
+```
+
+**Expected Response:** Binary PDF file
+
+### Why Two Webhooks?
+
+✅ **Faster** - Parallel execution reduces wait time
+✅ **Resilient** - Analysis works even if PDF generation fails
+✅ **Scalable** - Each webhook can be optimized independently
+✅ **Clean** - Separation of concerns (analysis vs generation)
 
 ## Configuration
 
-### Change Webhook URL
+### Change Webhook URLs
 
-Edit line 6-7 in `src/App.js`:
+Edit lines 7-8 in `src/App.js`:
 ```javascript
-const UPLOAD_WEBHOOK = "YOUR_WEBHOOK_URL";
+const ANALYSIS_WEBHOOK = "YOUR_ANALYSIS_WEBHOOK_URL";
+const PDF_WEBHOOK = "YOUR_PDF_WEBHOOK_URL";
 ```
 
 ### Documentation
 
+- **DUAL_WEBHOOK_GUIDE.md** - ⭐ Dual webhook architecture and setup
 - **ROUTING_GUIDE.md** - Multi-page routing and dark mode details
 - **N8N_RESPONSE_GUIDE.md** - How to configure your n8n webhook
 - **DISPLAY_GUIDE.md** - Display structure and troubleshooting
