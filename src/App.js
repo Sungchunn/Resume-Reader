@@ -50,7 +50,7 @@ export default function App() {
 
   const submitUpload = useCallback(async () => {
     setUploadError("");
-    setResult(null); // Clear previous results
+    setResult(null);
     if (!file) return setUploadError("Please select a PDF or DOCX file.");
     if (!jobTitle.trim()) return setUploadError("Please enter the job title.");
     if (!jobDescription.trim()) return setUploadError("Please enter the job description.");
@@ -65,7 +65,6 @@ export default function App() {
         form.append("company_url", companyUrl.trim());
       }
 
-      // For debugging: log what's being sent
       console.log("Sending to webhook:", UPLOAD_WEBHOOK);
       for (let [key, val] of form.entries()) {
         if (key === 'file') {
@@ -96,70 +95,114 @@ export default function App() {
     }
   }, [file, jobTitle, companyUrl, jobDescription]);
 
-  const renderValue = (value) => {
-    if (value === null || value === undefined) {
-      return <span style={{ color: "#9ca3af", fontStyle: "italic" }}>null</span>;
+  const renderBeautifulValue = (key, value) => {
+    // Special handling for common fields
+    if (key === 'ats_score' && typeof value === 'number') {
+      const scoreColor = value >= 80 ? '#10b981' : value >= 60 ? '#f59e0b' : '#ef4444';
+      return (
+        <div style={styles.scoreCard}>
+          <div style={{ fontSize: 48, fontWeight: 700, color: scoreColor }}>
+            {value}
+          </div>
+          <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
+            out of 100
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12 }}>
+            {value >= 80 && <span style={{ color: '#10b981' }}>✓ Excellent</span>}
+            {value >= 60 && value < 80 && <span style={{ color: '#f59e0b' }}>⚠ Good</span>}
+            {value < 60 && <span style={{ color: '#ef4444' }}>✗ Needs Improvement</span>}
+          </div>
+        </div>
+      );
     }
-    if (typeof value === 'boolean') {
-      return <span style={{ color: "#059669" }}>{value.toString()}</span>;
+
+    if ((key.includes('url') || key.includes('link')) && typeof value === 'string') {
+      return (
+        <a href={value} target="_blank" rel="noreferrer" style={styles.urlLink}>
+          🔗 {value}
+        </a>
+      );
     }
-    if (typeof value === 'number') {
-      return <span style={{ color: "#0891b2" }}>{value}</span>;
+
+    if (typeof value === 'string' && value.length > 200) {
+      return (
+        <details style={styles.expandable}>
+          <summary style={styles.expandableSummary}>
+            📄 View Content ({value.length} characters)
+          </summary>
+          <div style={styles.expandableContent}>
+            {value}
+          </div>
+        </details>
+      );
     }
+
     if (typeof value === 'string') {
-      if (value.length > 100) {
-        return (
-          <details style={{ display: "inline-block" }}>
-            <summary style={{ cursor: "pointer", color: "#4f46e5" }}>
-              {value.substring(0, 100)}... (click to expand)
-            </summary>
-            <pre style={{
-              marginTop: 8,
-              padding: 8,
-              background: "#f9fafb",
-              borderRadius: 6,
-              fontSize: 12,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word"
-            }}>{value}</pre>
-          </details>
-        );
-      }
-      return <span style={{ color: "#6b7280" }}>{value}</span>;
+      return <div style={styles.textValue}>{value}</div>;
     }
+
+    if (typeof value === 'number') {
+      return <div style={styles.numberValue}>{value}</div>;
+    }
+
+    if (typeof value === 'boolean') {
+      return (
+        <div style={styles.booleanValue}>
+          {value ? '✓ True' : '✗ False'}
+        </div>
+      );
+    }
+
+    if (value === null || value === undefined) {
+      return <div style={styles.nullValue}>—</div>;
+    }
+
     if (Array.isArray(value)) {
       return (
-        <details style={{ marginLeft: 16 }}>
-          <summary style={{ cursor: "pointer", color: "#7c3aed" }}>
-            Array ({value.length} items)
+        <details style={styles.expandable}>
+          <summary style={styles.expandableSummary}>
+            📋 Array ({value.length} items)
           </summary>
-          <div style={{ marginLeft: 16, marginTop: 4 }}>
+          <div style={styles.arrayContent}>
             {value.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: 4 }}>
-                <strong>[{idx}]:</strong> {renderValue(item)}
+              <div key={idx} style={styles.arrayItem}>
+                <span style={styles.arrayIndex}>{idx + 1}.</span>
+                {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
               </div>
             ))}
           </div>
         </details>
       );
     }
+
     if (typeof value === 'object') {
       return (
-        <details style={{ marginLeft: 16 }}>
-          <summary style={{ cursor: "pointer", color: "#7c3aed" }}>
-            Object ({Object.keys(value).length} keys)
+        <details style={styles.expandable}>
+          <summary style={styles.expandableSummary}>
+            📦 Object ({Object.keys(value).length} properties)
           </summary>
-          <div style={{ marginLeft: 16, marginTop: 4 }}>
+          <div style={styles.objectContent}>
             {Object.entries(value).map(([k, v]) => (
-              <div key={k} style={{ marginBottom: 8 }}>
-                <strong style={{ color: "#4338ca" }}>{k}:</strong> {renderValue(v)}
+              <div key={k} style={styles.objectRow}>
+                <strong style={styles.objectKey}>{k}:</strong>
+                <span style={styles.objectValue}>
+                  {typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v)}
+                </span>
               </div>
             ))}
           </div>
         </details>
       );
     }
-    return <span>{String(value)}</span>;
+
+    return <div style={styles.textValue}>{String(value)}</div>;
+  };
+
+  const formatFieldName = (key) => {
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   return (
@@ -256,51 +299,40 @@ export default function App() {
           )}
 
           {result && (
-            <div style={{ marginTop: 20 }}>
-              <h3 style={styles.h3}>Webhook Response</h3>
+            <div style={{ marginTop: 24 }}>
+              <div style={styles.successBanner}>
+                <span style={{ fontSize: 24 }}>✓</span>
+                <div style={{ marginLeft: 12 }}>
+                  <strong>Analysis Complete!</strong>
+                  <div style={{ fontSize: 13, marginTop: 2 }}>
+                    Your resume has been successfully analyzed and improved.
+                  </div>
+                </div>
+              </div>
 
-              <div style={styles.responseBox}>
+              <h3 style={styles.sectionTitle}>📊 Analysis Results</h3>
+
+              <div style={styles.resultsGrid}>
                 {Object.entries(result).map(([key, value]) => (
-                  <div key={key} style={styles.responseRow}>
-                    <div style={styles.responseKey}>{key}:</div>
-                    <div style={styles.responseValue}>{renderValue(value)}</div>
+                  <div key={key} style={styles.resultCard}>
+                    <div style={styles.resultCardHeader}>
+                      {formatFieldName(key)}
+                    </div>
+                    <div style={styles.resultCardBody}>
+                      {renderBeautifulValue(key, value)}
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <h3 style={styles.h3}>Parsed Results</h3>
-              {result.ats_score && (
-                <div style={styles.kv}>
-                  <strong>ATS Score:</strong> {result.ats_score}
-                </div>
-              )}
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
-                {result.pdf_url && (
-                  <a href={result.pdf_url} target="_blank" rel="noreferrer" style={styles.linkBtn}>
-                    Download PDF
-                  </a>
-                )}
-                {result.docx_url && (
-                  <a href={result.docx_url} target="_blank" rel="noreferrer" style={styles.linkBtn}>
-                    Download DOCX
-                  </a>
-                )}
-              </div>
-
-              {result.gap_analysis && (
-                <details style={styles.details}>
-                  <summary style={styles.summary}>Gap Analysis</summary>
-                  <pre style={styles.pre}>{JSON.stringify(result.gap_analysis, null, 2)}</pre>
-                </details>
-              )}
-
-              {result.improved_markdown && (
-                <details style={styles.details} open>
-                  <summary style={styles.summary}>Improved Markdown</summary>
-                  <pre style={styles.pre}>{result.improved_markdown}</pre>
-                </details>
-              )}
+              <details style={styles.rawDataSection}>
+                <summary style={styles.rawDataSummary}>
+                  🔍 View Raw JSON Response
+                </summary>
+                <pre style={styles.rawDataPre}>
+                  {JSON.stringify(result, null, 2)}
+                </pre>
+              </details>
             </div>
           )}
         </section>
@@ -321,13 +353,12 @@ const styles = {
     background: "white",
     border: "1px solid #e5e7eb",
     borderRadius: 12,
-    padding: 20,
-    maxWidth: 700,
+    padding: 24,
+    maxWidth: 800,
     width: "100%",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
   },
-  h2: { marginBottom: 12 },
-  h3: { marginTop: 20, marginBottom: 8 },
+  h2: { marginBottom: 16, fontSize: 20, fontWeight: 600 },
   dropzone: {
     position: "relative",
     border: "2px dashed #c7d2fe",
@@ -338,7 +369,7 @@ const styles = {
     cursor: "pointer",
   },
   fileInput: { position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%" },
-  label: { display: "block", fontSize: 13, fontWeight: 600, marginTop: 12, marginBottom: 4 },
+  label: { display: "block", fontSize: 13, fontWeight: 600, marginTop: 12, marginBottom: 4, color: "#374151" },
   input: {
     width: "100%",
     border: "1px solid #e5e7eb",
@@ -364,26 +395,27 @@ const styles = {
     color: "white",
     border: "none",
     borderRadius: 10,
-    padding: "10px 14px",
+    padding: "12px 16px",
     fontWeight: 600,
     width: "100%",
     fontSize: 15,
     marginTop: 8,
+    cursor: "pointer",
   },
   error: {
     background: "#fef2f2",
     color: "#991b1b",
     border: "1px solid #fecaca",
     borderRadius: 10,
-    padding: 10,
+    padding: 12,
     marginBottom: 10,
   },
   loadingBox: {
     marginTop: 20,
-    padding: 20,
+    padding: 24,
     background: "#eef2ff",
     border: "1px solid #c7d2fe",
-    borderRadius: 10,
+    borderRadius: 12,
     textAlign: "center",
   },
   spinner: {
@@ -395,58 +427,167 @@ const styles = {
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
   },
-  responseBox: {
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    padding: 16,
-    fontSize: 14,
+  successBanner: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    color: "white",
+    padding: 20,
+    borderRadius: 12,
+    display: "flex",
+    alignItems: "center",
+    marginBottom: 24,
+    boxShadow: "0 4px 6px rgba(16, 185, 129, 0.2)",
   },
-  responseRow: {
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottom: "1px solid #e5e7eb",
-  },
-  responseKey: {
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: 700,
-    color: "#4338ca",
-    marginBottom: 4,
+    marginBottom: 16,
+    color: "#111827",
+  },
+  resultsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: 16,
+    marginBottom: 24,
+  },
+  resultCard: {
+    background: "white",
+    border: "1px solid #e5e7eb",
+    borderRadius: 12,
+    overflow: "hidden",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+    transition: "transform 0.2s, box-shadow 0.2s",
+  },
+  resultCardHeader: {
+    background: "#f9fafb",
+    padding: "12px 16px",
+    fontWeight: 600,
     fontSize: 13,
+    color: "#4338ca",
     textTransform: "uppercase",
     letterSpacing: "0.05em",
+    borderBottom: "1px solid #e5e7eb",
   },
-  responseValue: {
-    color: "#111827",
+  resultCardBody: {
+    padding: 16,
+  },
+  scoreCard: {
+    textAlign: "center",
+    padding: "12px 0",
+  },
+  urlLink: {
+    color: "#4f46e5",
+    textDecoration: "none",
+    wordBreak: "break-all",
+    display: "block",
+    padding: "8px 12px",
+    background: "#eef2ff",
+    borderRadius: 8,
+    fontSize: 13,
+    transition: "background 0.2s",
+  },
+  textValue: {
+    color: "#374151",
+    fontSize: 14,
     lineHeight: 1.6,
   },
-  kv: { fontSize: 14, margin: "6px 0" },
-  details: {
+  numberValue: {
+    color: "#0891b2",
+    fontSize: 24,
+    fontWeight: 700,
+  },
+  booleanValue: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#059669",
+  },
+  nullValue: {
+    color: "#9ca3af",
+    fontStyle: "italic",
+    fontSize: 14,
+  },
+  expandable: {
     background: "#f9fafb",
     border: "1px solid #e5e7eb",
-    borderRadius: 10,
-    marginTop: 12,
+    borderRadius: 8,
+    overflow: "hidden",
   },
-  summary: { padding: 10, cursor: "pointer", fontWeight: 600 },
-  pre: {
+  expandableSummary: {
+    padding: "10px 12px",
+    cursor: "pointer",
+    fontWeight: 600,
+    fontSize: 13,
+    color: "#4f46e5",
+    userSelect: "none",
+  },
+  expandableContent: {
+    padding: 12,
+    background: "white",
+    borderTop: "1px solid #e5e7eb",
+    fontSize: 13,
+    lineHeight: 1.6,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
-    margin: 0,
-    padding: 12,
-    fontSize: 12,
-    borderTop: "1px solid #e5e7eb",
-    background: "#fff",
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    maxHeight: 320,
+    maxHeight: 300,
     overflow: "auto",
   },
-  linkBtn: {
-    display: "inline-block",
-    background: "#111827",
-    color: "white",
-    padding: "8px 10px",
-    borderRadius: 8,
-    textDecoration: "none",
+  arrayContent: {
+    padding: 12,
+    background: "white",
+    borderTop: "1px solid #e5e7eb",
+  },
+  arrayItem: {
+    padding: "8px 0",
+    borderBottom: "1px solid #f3f4f6",
     fontSize: 13,
+    lineHeight: 1.5,
+  },
+  arrayIndex: {
+    color: "#6b7280",
+    fontWeight: 600,
+    marginRight: 8,
+  },
+  objectContent: {
+    padding: 12,
+    background: "white",
+    borderTop: "1px solid #e5e7eb",
+  },
+  objectRow: {
+    padding: "8px 0",
+    borderBottom: "1px solid #f3f4f6",
+    fontSize: 13,
+  },
+  objectKey: {
+    color: "#4338ca",
+    marginRight: 8,
+  },
+  objectValue: {
+    color: "#374151",
+    wordBreak: "break-word",
+  },
+  rawDataSection: {
+    marginTop: 24,
+    background: "#f9fafb",
+    border: "1px solid #e5e7eb",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  rawDataSummary: {
+    padding: "12px 16px",
+    cursor: "pointer",
+    fontWeight: 600,
+    fontSize: 14,
+    color: "#6b7280",
+    userSelect: "none",
+  },
+  rawDataPre: {
+    margin: 0,
+    padding: 16,
+    background: "#1f2937",
+    color: "#f3f4f6",
+    fontSize: 12,
+    lineHeight: 1.6,
+    overflow: "auto",
+    maxHeight: 400,
+    borderTop: "1px solid #e5e7eb",
   },
 };
