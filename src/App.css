@@ -1,0 +1,183 @@
+
+body {
+  background-color: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  color: #333;
+}
+
+.App {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.App-header {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.App-header h1 {
+  font-size: 2.5em;
+  color: #1890ff;
+}
+
+.main-score {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.main-score h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.score-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #1890ff;
+  color: white;
+  font-size: 4em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+  font-size: 1.8em;
+  margin-top: 0;
+  color: #1890ff;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.card h3 {
+  font-size: 1.2em;
+  color: #333;
+  margin-top: 20px;
+}
+
+.category-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.category {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f0f2f5;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-score {
+  font-weight: bold;
+  color: #1890ff;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.keyword {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  color: #1890ff;
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 0.9em;
+}
+
+a {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.submit-btn, .back-btn {
+  background-color: #1890ff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.back-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.error {
+    color: red;
+    margin-bottom: 10px;
+}
+
+.pdf-main {
+    display: flex;
+    justify-content: center;
+}
+
+.pdf-document {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.pdf-page {
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
