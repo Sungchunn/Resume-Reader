@@ -95,107 +95,137 @@ export default function App() {
     }
   }, [file, jobTitle, companyUrl, jobDescription]);
 
-  const renderBeautifulValue = (key, value) => {
-    // Special handling for common fields
-    if (key === 'ats_score' && typeof value === 'number') {
-      const scoreColor = value >= 80 ? '#10b981' : value >= 60 ? '#f59e0b' : '#ef4444';
-      return (
-        <div style={styles.scoreCard}>
-          <div style={{ fontSize: 48, fontWeight: 700, color: scoreColor }}>
-            {value}
-          </div>
-          <div style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
-            out of 100
-          </div>
-          <div style={{ marginTop: 8, fontSize: 12 }}>
-            {value >= 80 && <span style={{ color: '#10b981' }}>✓ Excellent</span>}
-            {value >= 60 && value < 80 && <span style={{ color: '#f59e0b' }}>⚠ Good</span>}
-            {value < 60 && <span style={{ color: '#ef4444' }}>✗ Needs Improvement</span>}
-          </div>
-        </div>
-      );
+  // Recursively render values in a beautiful, parsed format
+  const renderValue = (value, depth = 0) => {
+    // Null or undefined
+    if (value === null || value === undefined) {
+      return <span style={styles.nullValue}>—</span>;
     }
 
-    if ((key.includes('url') || key.includes('link')) && typeof value === 'string') {
-      return (
-        <a href={value} target="_blank" rel="noreferrer" style={styles.urlLink}>
-          🔗 {value}
-        </a>
-      );
-    }
-
-    if (typeof value === 'string' && value.length > 200) {
-      return (
-        <details style={styles.expandable}>
-          <summary style={styles.expandableSummary}>
-            📄 View Content ({value.length} characters)
-          </summary>
-          <div style={styles.expandableContent}>
-            {value}
-          </div>
-        </details>
-      );
-    }
-
-    if (typeof value === 'string') {
-      return <div style={styles.textValue}>{value}</div>;
-    }
-
-    if (typeof value === 'number') {
-      return <div style={styles.numberValue}>{value}</div>;
-    }
-
+    // Boolean
     if (typeof value === 'boolean') {
       return (
-        <div style={styles.booleanValue}>
-          {value ? '✓ True' : '✗ False'}
+        <span style={{ ...styles.booleanValue, color: value ? '#10b981' : '#ef4444' }}>
+          {value ? '✓ Yes' : '✗ No'}
+        </span>
+      );
+    }
+
+    // Number
+    if (typeof value === 'number') {
+      return <span style={styles.numberValue}>{value.toLocaleString()}</span>;
+    }
+
+    // String
+    if (typeof value === 'string') {
+      // Check if it's a URL
+      if (value.match(/^https?:\/\//)) {
+        return (
+          <a href={value} target="_blank" rel="noreferrer" style={styles.linkValue}>
+            🔗 {value}
+          </a>
+        );
+      }
+
+      // Long text - make it collapsible
+      if (value.length > 300) {
+        return (
+          <details style={styles.textExpandable}>
+            <summary style={styles.textExpandableSummary}>
+              {value.substring(0, 150)}... <span style={{ color: '#4f46e5' }}>(click to read more)</span>
+            </summary>
+            <div style={styles.textExpandableContent}>
+              {value}
+            </div>
+          </details>
+        );
+      }
+
+      // Regular text
+      return <span style={styles.textValue}>{value}</span>;
+    }
+
+    // Array
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return <span style={styles.emptyValue}>Empty list</span>;
+      }
+
+      return (
+        <div style={{ ...styles.arrayContainer, marginLeft: depth > 0 ? 16 : 0 }}>
+          {value.map((item, idx) => (
+            <div key={idx} style={styles.arrayItem}>
+              <span style={styles.arrayBullet}>•</span>
+              <div style={styles.arrayItemContent}>
+                {renderValue(item, depth + 1)}
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
 
-    if (value === null || value === undefined) {
-      return <div style={styles.nullValue}>—</div>;
-    }
-
-    if (Array.isArray(value)) {
-      return (
-        <details style={styles.expandable}>
-          <summary style={styles.expandableSummary}>
-            📋 Array ({value.length} items)
-          </summary>
-          <div style={styles.arrayContent}>
-            {value.map((item, idx) => (
-              <div key={idx} style={styles.arrayItem}>
-                <span style={styles.arrayIndex}>{idx + 1}.</span>
-                {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
-              </div>
-            ))}
-          </div>
-        </details>
-      );
-    }
-
+    // Object
     if (typeof value === 'object') {
+      const entries = Object.entries(value);
+      if (entries.length === 0) {
+        return <span style={styles.emptyValue}>Empty object</span>;
+      }
+
       return (
-        <details style={styles.expandable}>
-          <summary style={styles.expandableSummary}>
-            📦 Object ({Object.keys(value).length} properties)
-          </summary>
-          <div style={styles.objectContent}>
-            {Object.entries(value).map(([k, v]) => (
-              <div key={k} style={styles.objectRow}>
-                <strong style={styles.objectKey}>{k}:</strong>
-                <span style={styles.objectValue}>
-                  {typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v)}
-                </span>
+        <div style={{ ...styles.objectContainer, marginLeft: depth > 0 ? 16 : 0 }}>
+          {entries.map(([key, val]) => (
+            <div key={key} style={styles.objectRow}>
+              <div style={styles.objectKey}>{key}:</div>
+              <div style={styles.objectValue}>
+                {renderValue(val, depth + 1)}
               </div>
-            ))}
-          </div>
-        </details>
+            </div>
+          ))}
+        </div>
       );
     }
 
-    return <div style={styles.textValue}>{String(value)}</div>;
+    // Fallback
+    return <span style={styles.textValue}>{String(value)}</span>;
+  };
+
+  // Special rendering for specific field types
+  const renderFieldValue = (key, value) => {
+    // ATS Score gets special treatment
+    if (key === 'ats_score' && typeof value === 'number') {
+      const scoreColor = value >= 80 ? '#10b981' : value >= 60 ? '#f59e0b' : '#ef4444';
+      const scoreBg = value >= 80 ? '#d1fae5' : value >= 60 ? '#fef3c7' : '#fee2e2';
+
+      return (
+        <div style={styles.scoreContainer}>
+          <div style={{ ...styles.scoreCircle, background: scoreBg, borderColor: scoreColor }}>
+            <div style={{ ...styles.scoreNumber, color: scoreColor }}>{value}</div>
+            <div style={styles.scoreLabel}>out of 100</div>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            {value >= 80 && (
+              <div style={{ ...styles.scoreBadge, background: '#d1fae5', color: '#10b981' }}>
+                ✓ Excellent Score
+              </div>
+            )}
+            {value >= 60 && value < 80 && (
+              <div style={{ ...styles.scoreBadge, background: '#fef3c7', color: '#f59e0b' }}>
+                ⚠ Good Score
+              </div>
+            )}
+            {value < 60 && (
+              <div style={{ ...styles.scoreBadge, background: '#fee2e2', color: '#ef4444' }}>
+                ✗ Needs Improvement
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Default to generic value renderer
+    return renderValue(value);
   };
 
   const formatFieldName = (key) => {
@@ -319,7 +349,7 @@ export default function App() {
                       {formatFieldName(key)}
                     </div>
                     <div style={styles.resultCardBody}>
-                      {renderBeautifulValue(key, value)}
+                      {renderFieldValue(key, value)}
                     </div>
                   </div>
                 ))}
@@ -354,7 +384,7 @@ const styles = {
     border: "1px solid #e5e7eb",
     borderRadius: 12,
     padding: 24,
-    maxWidth: 800,
+    maxWidth: 900,
     width: "100%",
     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
   },
@@ -445,7 +475,7 @@ const styles = {
   },
   resultsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: 16,
     marginBottom: 24,
   },
@@ -455,7 +485,6 @@ const styles = {
     borderRadius: 12,
     overflow: "hidden",
     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    transition: "transform 0.2s, box-shadow 0.2s",
   },
   resultCardHeader: {
     background: "#f9fafb",
@@ -470,99 +499,131 @@ const styles = {
   resultCardBody: {
     padding: 16,
   },
-  scoreCard: {
+  scoreContainer: {
     textAlign: "center",
-    padding: "12px 0",
   },
-  urlLink: {
-    color: "#4f46e5",
-    textDecoration: "none",
-    wordBreak: "break-all",
-    display: "block",
-    padding: "8px 12px",
-    background: "#eef2ff",
-    borderRadius: 8,
+  scoreCircle: {
+    width: 120,
+    height: 120,
+    margin: "0 auto",
+    borderRadius: "50%",
+    border: "4px solid",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scoreNumber: {
+    fontSize: 36,
+    fontWeight: 700,
+    lineHeight: 1,
+  },
+  scoreLabel: {
+    fontSize: 11,
+    color: "#6b7280",
+    marginTop: 4,
+  },
+  scoreBadge: {
+    display: "inline-block",
+    padding: "6px 12px",
+    borderRadius: 20,
     fontSize: 13,
-    transition: "background 0.2s",
+    fontWeight: 600,
   },
   textValue: {
-    color: "#374151",
+    color: "#111827",
     fontSize: 14,
     lineHeight: 1.6,
+    wordBreak: "break-word",
   },
   numberValue: {
     color: "#0891b2",
-    fontSize: 24,
-    fontWeight: 700,
+    fontSize: 20,
+    fontWeight: 600,
   },
   booleanValue: {
     fontSize: 14,
     fontWeight: 600,
-    color: "#059669",
   },
   nullValue: {
     color: "#9ca3af",
     fontStyle: "italic",
     fontSize: 14,
   },
-  expandable: {
-    background: "#f9fafb",
-    border: "1px solid #e5e7eb",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  expandableSummary: {
-    padding: "10px 12px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 13,
+  linkValue: {
     color: "#4f46e5",
-    userSelect: "none",
+    textDecoration: "none",
+    wordBreak: "break-all",
+    fontSize: 13,
+    padding: "8px 12px",
+    background: "#eef2ff",
+    borderRadius: 8,
+    display: "inline-block",
   },
-  expandableContent: {
+  emptyValue: {
+    color: "#9ca3af",
+    fontStyle: "italic",
+    fontSize: 13,
+  },
+  textExpandable: {
+    marginTop: 4,
+  },
+  textExpandableSummary: {
+    cursor: "pointer",
+    fontSize: 14,
+    lineHeight: 1.6,
+    color: "#374151",
+  },
+  textExpandableContent: {
+    marginTop: 8,
     padding: 12,
-    background: "white",
-    borderTop: "1px solid #e5e7eb",
+    background: "#f9fafb",
+    borderRadius: 8,
     fontSize: 13,
     lineHeight: 1.6,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
-    maxHeight: 300,
-    overflow: "auto",
   },
-  arrayContent: {
-    padding: 12,
-    background: "white",
-    borderTop: "1px solid #e5e7eb",
+  arrayContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
   },
   arrayItem: {
-    padding: "8px 0",
-    borderBottom: "1px solid #f3f4f6",
-    fontSize: 13,
-    lineHeight: 1.5,
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 8,
   },
-  arrayIndex: {
-    color: "#6b7280",
-    fontWeight: 600,
-    marginRight: 8,
+  arrayBullet: {
+    color: "#4f46e5",
+    fontSize: 18,
+    lineHeight: 1.4,
+    fontWeight: 700,
   },
-  objectContent: {
-    padding: 12,
-    background: "white",
-    borderTop: "1px solid #e5e7eb",
+  arrayItemContent: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  objectContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
   },
   objectRow: {
-    padding: "8px 0",
-    borderBottom: "1px solid #f3f4f6",
-    fontSize: 13,
+    display: "grid",
+    gridTemplateColumns: "140px 1fr",
+    gap: 12,
+    alignItems: "start",
   },
   objectKey: {
-    color: "#4338ca",
-    marginRight: 8,
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "capitalize",
   },
   objectValue: {
-    color: "#374151",
-    wordBreak: "break-word",
+    fontSize: 14,
+    color: "#111827",
   },
   rawDataSection: {
     marginTop: 24,
