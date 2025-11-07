@@ -1,6 +1,6 @@
-# Resume Analyzer
+# Resume Analyzer with LaTeX Editor
 
-Simple React frontend that uploads resumes to n8n webhook and displays results.
+React-based resume analysis tool that provides scoring, feedback, and an editable LaTeX resume template.
 
 ## Quick Start
 
@@ -14,12 +14,23 @@ Visit `http://localhost:3000`
 ## How It Works
 
 1. User enters **Job Title** they're applying for
-2. User enters **Company Website URL** (optional)
+2. User enters **Company Website URL** (optional) - provides AI context on company culture and pain points
 3. User pastes **Job Description**
-4. User uploads their **Resume** (PDF/DOCX)
+4. User uploads their **Resume** (PDF)
 5. Frontend sends all data to n8n webhook
-6. n8n processes and returns improved resume
-7. Frontend displays ATS score and download links
+6. n8n processes and returns:
+   - Resume analysis with scoring and feedback
+   - Suggested resume improvements in LaTeX format
+7. Frontend displays split view:
+   - **Left Panel**: Analysis scores, strengths, improvement areas, keywords, tips
+   - **Right Panel**: Editable LaTeX code with download capability
+
+## Features
+
+- **Interactive LaTeX Editor**: Edit the suggested resume directly in the browser
+- **Dark Mode Support**: Automatic theme switching based on system preferences
+- **Download & Copy**: Export LaTeX code as .tex file or copy to clipboard
+- **Comprehensive Feedback**: Overall score, category scores, strengths, improvement areas, keywords, ATS tips
 
 ## Webhook Data Sent
 
@@ -27,7 +38,7 @@ Visit `http://localhost:3000`
 POST https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788
 
 FormData:
-- file: [binary PDF/DOCX]
+- file: [binary PDF]
 - job_title: "Senior Software Engineer"
 - company_url: "https://www.company.com" (optional)
 - job_description: "We are looking for..."
@@ -35,19 +46,46 @@ FormData:
 
 ## Expected Webhook Response
 
+The webhook should return JSON with analysis data and LaTeX code:
+
+```json
+[
+  {
+    "output": "{\"overall_score\": 85, \"category_scores\": {...}, \"strengths\": [...], \"improvement_areas\": [...], \"keyword_recommendations\": [...], \"tailored_bullets\": [...], \"ats_tips\": [...], \"summary\": \"...\"}",
+    "latex": "\\documentclass{article}\\n\\begin{document}\\n...\\end{document}",
+    "latex_code": "\\documentclass{article}\\n\\begin{document}\\n...\\end{document}"
+  }
+]
+```
+
+Or direct object format:
+
 ```json
 {
-  "ats_score": 85,
-  "improved_markdown": "# John Doe\n\n...",
-  "docx_url": "https://...",
-  "pdf_url": "https://...",
-  "gap_analysis": { ... }
+  "overall_score": 85,
+  "category_scores": {
+    "keyword_matching": 80,
+    "formatting": 90,
+    "content_quality": 85
+  },
+  "strengths": ["Strong technical skills", "Clear experience"],
+  "improvement_areas": ["Add more metrics", "Include keywords"],
+  "keyword_recommendations": ["React", "Node.js", "AWS"],
+  "latex": "\\documentclass{article}...",
+  "summary": "Overall assessment..."
 }
 ```
 
 ## Change Webhook URL
 
-Edit line 3 in `src/App.js`:
+Edit line 6 in `src/App.js`:
 ```javascript
 const UPLOAD_WEBHOOK = "YOUR_WEBHOOK_URL";
 ```
+
+## Documentation
+
+See the `docs/` folder for additional guides:
+- [N8N Webhook Setup](docs/N8N_WEBHOOK_SETUP.md)
+- [Response Format Guide](docs/N8N_RESPONSE_GUIDE.md)
+- [Display Structure](docs/DISPLAY_GUIDE.md)
