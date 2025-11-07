@@ -6,6 +6,7 @@ Complete documentation for the Resume Analyzer application with LaTeX editor.
 
 ### Core Documentation
 - **[LaTeX Workflow Guide](LATEX_WORKFLOW.md)** - How the LaTeX-based resume system works
+- **[LaTeX Compilation Setup](LATEX_COMPILATION_SETUP.md)** - Enable real-time PDF preview (⚠️ Read this if preview unavailable)
 - **[n8n Webhook Setup](N8N_WEBHOOK_SETUP.md)** - Setting up and configuring the webhook backend
 - **[Display Structure Guide](DISPLAY_GUIDE.md)** - Frontend architecture and UI components
 

@@ -28,9 +28,28 @@ Visit `http://localhost:3000`
 ## Features
 
 - **Interactive LaTeX Editor**: Edit the suggested resume directly in the browser
+- **Real-time PDF Preview**: See your resume as you edit (requires setup - see below)
 - **Dark Mode Support**: Automatic theme switching based on system preferences
 - **Download & Copy**: Export LaTeX code as .tex file or copy to clipboard
+- **Export to PDF**: Download compiled PDF with one click (when preview enabled)
 - **Comprehensive Feedback**: Overall score, category scores, strengths, improvement areas, keywords, ATS tips
+
+## PDF Preview Setup
+
+The app shows "Preview Unavailable" because external LaTeX APIs have CORS restrictions. To enable real-time PDF preview:
+
+**Option 1: Setup n8n LaTeX Endpoint** (Recommended)
+- Add LaTeX compilation to your n8n workflow
+- See detailed guide: [docs/LATEX_COMPILATION_SETUP.md](docs/LATEX_COMPILATION_SETUP.md)
+
+**Option 2: Use Overleaf**
+- Download .tex file → Upload to [Overleaf.com](https://www.overleaf.com)
+- Compile and download PDF there
+
+**Option 3: Compile Locally**
+- Download .tex file
+- Run: `pdflatex resume.tex`
+- Requires LaTeX distribution (TeX Live, MiKTeX, etc.)
 
 ## Webhook Data Sent
 
