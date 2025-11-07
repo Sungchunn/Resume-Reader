@@ -91,7 +91,12 @@ const LatexEditor = ({ initialCode }) => {
             setPdfUrl(url);
         } catch (error) {
             console.error('Compilation error:', error);
-            setCompileError(error.message || 'Failed to compile LaTeX. Please check your code for errors.');
+
+            if (error.message === 'PREVIEW_UNAVAILABLE') {
+                setCompileError('PREVIEW_UNAVAILABLE');
+            } else {
+                setCompileError(error.message || 'Failed to compile LaTeX. Please check your code for errors.');
+            }
         } finally {
             setCompiling(false);
         }
@@ -169,16 +174,51 @@ const LatexEditor = ({ initialCode }) => {
                 </div>
                 <div className="pdf-preview-section">
                     <div className="pdf-preview-header">
-                        <h4>Real-time Preview</h4>
+                        <h4>LaTeX Preview</h4>
                         {compiling && <span className="compiling-indicator">Rendering...</span>}
                     </div>
-                    {compileError && (
+                    {compileError === 'PREVIEW_UNAVAILABLE' ? (
+                        <div className="preview-unavailable">
+                            <div className="preview-unavailable-icon">📄</div>
+                            <h3>PDF Preview Unavailable</h3>
+                            <p>Real-time PDF preview requires a LaTeX compilation backend.</p>
+
+                            <div className="preview-options">
+                                <h4>Options to view your resume:</h4>
+                                <ol>
+                                    <li>
+                                        <strong>Download .tex file</strong> and compile locally:
+                                        <ul>
+                                            <li>Click "Download .tex" button above</li>
+                                            <li>Compile with: <code>pdflatex resume.tex</code></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong>Use Overleaf</strong> (online LaTeX editor):
+                                        <ul>
+                                            <li>Go to <a href="https://www.overleaf.com" target="_blank" rel="noopener noreferrer">overleaf.com</a></li>
+                                            <li>Create new project → Upload LaTeX code</li>
+                                            <li>Compile and download PDF</li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <strong>Setup n8n LaTeX compilation</strong>:
+                                        <ul>
+                                            <li>Add LaTeX compilation node to your n8n workflow</li>
+                                            <li>Create webhook endpoint: <code>/latex-compile</code></li>
+                                            <li>Accepts: <code>&#123;"latex": "..."&#125;</code></li>
+                                            <li>Returns: PDF file</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    ) : compileError ? (
                         <div className="compile-error">
                             <strong>Compilation Error:</strong> {compileError}
                             <br /><small>Please check your LaTeX syntax and try again.</small>
                         </div>
-                    )}
-                    {pdfUrl && !compiling && (
+                    ) : pdfUrl && !compiling ? (
                         <div className="pdf-preview-container">
                             <Document
                                 file={pdfUrl}
@@ -196,12 +236,11 @@ const LatexEditor = ({ initialCode }) => {
                                 ))}
                             </Document>
                         </div>
-                    )}
-                    {!pdfUrl && !compiling && !compileError && (
+                    ) : !pdfUrl && !compiling && !compileError ? (
                         <div className="pdf-preview-placeholder">
                             <p>Loading preview... Your resume will appear here shortly.</p>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
         </div>

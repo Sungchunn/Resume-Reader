@@ -711,6 +711,86 @@ a:hover {
     font-size: 1.1em;
 }
 
+.preview-unavailable {
+    padding: 30px;
+    text-align: left;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.preview-unavailable-icon {
+    font-size: 4em;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.preview-unavailable h3 {
+    color: var(--accent-blue);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.preview-unavailable > p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+.preview-options {
+    background-color: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-blue);
+}
+
+.preview-options h4 {
+    margin-top: 0;
+    color: var(--text-primary);
+}
+
+.preview-options ol {
+    padding-left: 20px;
+}
+
+.preview-options li {
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.preview-options strong {
+    color: var(--accent-blue);
+}
+
+.preview-options ul {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+
+.preview-options ul li {
+    margin-bottom: 5px;
+    font-size: 0.95em;
+    color: var(--text-secondary);
+}
+
+.preview-options code {
+    background-color: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--accent-purple-1);
+}
+
+.preview-options a {
+    color: var(--accent-blue);
+    text-decoration: none;
+}
+
+.preview-options a:hover {
+    text-decoration: underline;
+}
+
 /* Split Layout for Analysis + LaTeX Editor */
 .results-split-layout {
     display: flex;
