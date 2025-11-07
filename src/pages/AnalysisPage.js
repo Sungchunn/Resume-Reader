@@ -1,11 +1,12 @@
 import React from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import LatexEditor from '../components/LatexEditor';
 import '../App.css';
 
 const AnalysisPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { analysisData, hasPdf } = location.state || {};
+    const { analysisData, latexCode, hasLatex } = location.state || {};
 
     // Redirect if no data
     React.useEffect(() => {
@@ -121,18 +122,15 @@ const AnalysisPage = () => {
     };
 
     return (
-        <div className="App analysis-page">
+        <div className="App analysis-page results-view">
             <header className="App-header">
-                <h1>Resume Analysis Report</h1>
+                <h1>Resume Analysis & Suggested Resume</h1>
                 <div className="header-actions">
                     <Link to="/" className="back-btn">Back to Form</Link>
-                    {hasPdf && (
-                        <Link to="/pdf" state={{ pdfUrl: location.state.pdfUrl }} className="view-pdf-btn">
-                            View Improved Resume
-                        </Link>
-                    )}
                 </div>
             </header>
+            <div className="results-split-layout">
+                <div className="feedback-panel">
             <main className="analysis-container">
                 {/* Overall Score */}
                 {analysisData.overall_score !== undefined && (
@@ -223,6 +221,13 @@ const AnalysisPage = () => {
                     </div>
                 )}
             </main>
+                </div>
+                {hasLatex && latexCode && (
+                    <div className="latex-panel">
+                        <LatexEditor initialCode={latexCode} />
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

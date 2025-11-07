@@ -1,10 +1,9 @@
 // src/App.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 
-const UPLOAD_WEBHOOK =
-    'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
+const UPLOAD_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
 
 const App = () => {
     const navigate = useNavigate();
@@ -16,8 +15,6 @@ const App = () => {
         company_url: '',
         file: null,
     });
-
-    const objectUrlRef = useRef(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -60,13 +57,13 @@ const App = () => {
 
             const ct = response.headers.get('content-type') || '';
 
-            // Handle JSON response with analysis data
+            // Handle JSON response with analysis data and LaTeX
             if (ct.includes('json')) {
                 const jsonData = await response.json();
                 console.log('Received JSON response:', jsonData);
 
                 let analysisJson = null;
-                let pdfSource = null;
+                let latexCode = null;
 
                 // Format 1: Array with output field [{ output: "stringified json" }]
                 if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].output) {
@@ -74,11 +71,9 @@ const App = () => {
                         analysisJson = JSON.parse(jsonData[0].output);
                         console.log('Parsed analysis from array format:', analysisJson);
 
-                        // Check for PDF in array object
-                        if (jsonData[0].pdf_url) {
-                            pdfSource = jsonData[0].pdf_url;
-                        } else if (jsonData[0].pdf_data) {
-                            pdfSource = jsonData[0].pdf_data;
+                        // Check for LaTeX in array object
+                        if (jsonData[0].latex || jsonData[0].latex_code) {
+                            latexCode = jsonData[0].latex || jsonData[0].latex_code;
                         }
                     } catch (parseError) {
                         console.error('Failed to parse output field:', parseError);
@@ -100,57 +95,40 @@ const App = () => {
                     throw new Error(`Unexpected response format. Received: ${JSON.stringify(jsonData).substring(0, 200)}...`);
                 }
 
-                // Check for PDF URL in the parsed analysis itself
-                if (!pdfSource && analysisJson.pdf_url) {
-                    pdfSource = analysisJson.pdf_url;
+                // Check for LaTeX in the parsed analysis itself
+                if (!latexCode && (analysisJson.latex || analysisJson.latex_code)) {
+                    latexCode = analysisJson.latex || analysisJson.latex_code;
                 }
 
-                // Handle PDF source - convert to blob URL if needed
-                let pdfUrl = null;
-                if (pdfSource) {
-                    if (pdfSource.startsWith('http')) {
-                        // Direct URL - use as is
-                        pdfUrl = pdfSource;
-                        console.log('Using PDF URL:', pdfUrl);
-                    } else {
-                        // Assume base64 - convert to blob URL
-                        try {
-                            const binaryString = atob(pdfSource);
-                            const bytes = new Uint8Array(binaryString.length);
-                            for (let i = 0; i < binaryString.length; i++) {
-                                bytes[i] = binaryString.charCodeAt(i);
-                            }
-                            const blob = new Blob([bytes], { type: 'application/pdf' });
-                            pdfUrl = URL.createObjectURL(blob);
-                            objectUrlRef.current = pdfUrl;
-                            console.log('Converted base64 PDF to blob URL');
-                        } catch (b64Error) {
-                            console.error('Failed to decode base64 PDF:', b64Error);
-                        }
-                    }
-                } else {
-                    console.warn('No PDF data found in response. Analysis will be shown without PDF.');
+                if (!latexCode) {
+                    console.warn('No LaTeX code found in response. Analysis will be shown without LaTeX editor.');
                 }
 
                 // Navigate to analysis page with data
                 navigate('/analysis', {
                     state: {
                         analysisData: analysisJson,
-                        pdfUrl: pdfUrl,
-                        hasPdf: !!pdfUrl
+                        latexCode: latexCode,
+                        hasLatex: !!latexCode
                     }
                 });
             }
             // Handle PDF response directly
             else if (ct.includes('pdf')) {
                 const ab = await response.arrayBuffer();
-                const blob = new Blob([ab], { type: 'application/pdf' });
-                const pdfUrl = URL.createObjectURL(blob);
-                objectUrlRef.current = pdfUrl;
 
-                // Navigate directly to PDF page
+                // Try to read filename from Content-Disposition
+                const cd = response.headers.get('content-disposition') || '';
+                const fnameMatch = /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i.exec(cd);
+                const fileName = fnameMatch ? decodeURIComponent(fnameMatch[1]) : 'improved-resume.pdf';
+
+                // Pass ArrayBuffer instead of creating blob URL here
                 navigate('/pdf', {
-                    state: { pdfUrl }
+                    state: {
+                        arrayBuffer: ab,
+                        fileName: fileName,
+                        mime: 'application/pdf'
+                    }
                 });
             }
             else {
@@ -162,15 +140,6 @@ const App = () => {
             setLoading(false);
         }
     };
-
-    // Cleanup blob URLs on unmount
-    useEffect(() => {
-        return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current);
-            }
-        };
-    }, []);
 
     return (
         <div className="App">

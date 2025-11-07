@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import '../App.css';
@@ -13,47 +13,66 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 const PDFPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { pdfUrl: passedPdfUrl } = location.state || {};
+    const state = location.state || {};
 
     const [pdfUrl, setPdfUrl] = useState(null);
     const [numPages, setNumPages] = useState(null);
     const [error, setError] = useState(null);
-    const objectUrlRef = useRef(null);
+    const [fileName, setFileName] = useState('improved-resume.pdf');
 
     useEffect(() => {
-        // Redirect if no PDF URL provided
-        if (!passedPdfUrl) {
+        // Redirect if no PDF data provided
+        if (!state || (!state.arrayBuffer && !state.pdfUrl)) {
             navigate('/');
             return;
         }
 
-        // If it's already a blob URL or http URL, use it directly
-        if (passedPdfUrl.startsWith('blob:') || passedPdfUrl.startsWith('http')) {
-            setPdfUrl(passedPdfUrl);
-        } else {
-            // Create blob URL from base64 if needed
+        let url = null;
+
+        // Prefer an already-provided URL (for backwards compatibility)
+        if (state.pdfUrl && (state.pdfUrl.startsWith('blob:') || state.pdfUrl.startsWith('http'))) {
+            url = state.pdfUrl;
+            setPdfUrl(url);
+            if (state.fileName) setFileName(state.fileName);
+        }
+        // Create blob URL from ArrayBuffer
+        else if (state.arrayBuffer) {
             try {
-                const binaryString = atob(passedPdfUrl);
+                const blob = new Blob([state.arrayBuffer], {
+                    type: state.mime || 'application/pdf'
+                });
+                url = URL.createObjectURL(blob);
+                setPdfUrl(url);
+                if (state.fileName) setFileName(state.fileName);
+            } catch (err) {
+                setError('Failed to load PDF from ArrayBuffer');
+                console.error('PDF loading error:', err);
+            }
+        }
+        // Handle base64 data (if still used)
+        else if (state.pdfUrl) {
+            try {
+                const binaryString = atob(state.pdfUrl);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
                 }
                 const blob = new Blob([bytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                objectUrlRef.current = url;
+                url = URL.createObjectURL(blob);
                 setPdfUrl(url);
             } catch (err) {
-                setError('Failed to load PDF');
+                setError('Failed to load PDF from base64');
                 console.error('PDF loading error:', err);
             }
         }
 
+        // Cleanup: revoke blob URL when component unmounts
         return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current);
+            if (url && url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
             }
         };
-    }, [passedPdfUrl, navigate]);
+    }, [state, navigate]);
 
     const onDocumentLoadSuccess = ({ numPages }) => {
         setNumPages(numPages);
@@ -63,7 +82,7 @@ const PDFPage = () => {
         if (pdfUrl) {
             const link = document.createElement('a');
             link.href = pdfUrl;
-            link.download = 'improved-resume.pdf';
+            link.download = fileName;
             link.click();
         }
     };
