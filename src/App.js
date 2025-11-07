@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 // Two separate webhooks
-const ANALYSIS_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
+const ANALYSIS_WEBHOOK = process.env.REACT_APP_ANALYSIS_WEBHOOK || 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
 const PDF_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/20db4528-631d-42c0-858d-930ba828178d';
 
 const App = () => {
