@@ -5,6 +5,99 @@ import './App.css';
 
 const UPLOAD_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
 
+// Transform flat webhook format to expected structure
+const transformAnalysisData = (data) => {
+    if (!data) return data;
+
+    // If data is already in the expected format, return as-is
+    if (data.strengths && Array.isArray(data.strengths)) {
+        return data;
+    }
+
+    const transformed = { ...data };
+
+    // Extract category scores (fields starting with cs_)
+    const categoryScores = {};
+    Object.keys(data).forEach(key => {
+        if (key.startsWith('cs_')) {
+            const categoryName = key.replace('cs_', '').replace(/_/g, ' ');
+            categoryScores[categoryName] = data[key];
+        }
+    });
+    if (Object.keys(categoryScores).length > 0) {
+        transformed.category_scores = categoryScores;
+    }
+
+    // Convert numbered fields to arrays
+    const convertToArray = (prefix) => {
+        const items = [];
+        let index = 1;
+        while (data[`${prefix}_${index}`]) {
+            items.push(data[`${prefix}_${index}`]);
+            index++;
+        }
+        // If no numbered fields, check for _all field
+        if (items.length === 0 && data[`${prefix}_all`]) {
+            // Split by | or newline
+            const allText = data[`${prefix}_all`];
+            return allText.split(/\s*\|\s*/).filter(s => s.trim());
+        }
+        return items.length > 0 ? items : undefined;
+    };
+
+    // Transform strengths
+    const strengths = convertToArray('strengths');
+    if (strengths) transformed.strengths = strengths;
+
+    // Transform improvement areas
+    const improvements = convertToArray('improvement');
+    if (improvements) transformed.improvement_areas = improvements;
+
+    // Transform tailored bullets
+    const bullets = convertToArray('tailored_bullet');
+    if (bullets) transformed.tailored_bullets = bullets;
+
+    // Transform keyword recommendations
+    if (data.keyword_recommendations_all) {
+        transformed.keyword_recommendations = data.keyword_recommendations_all
+            .split(/\s*\|\s*/)
+            .filter(s => s.trim());
+    }
+
+    // Transform ATS tips
+    if (data.ats_tips_all) {
+        transformed.ats_tips = data.ats_tips_all
+            .split(/\s*\|\s*/)
+            .filter(s => s.trim());
+    }
+
+    // Transform learning plan
+    const quickWins = convertToArray('quick_win');
+    const mediumHorizon = convertToArray('medium_horizon');
+    if (quickWins || mediumHorizon) {
+        transformed.gaps_and_learning_plan = {};
+        if (quickWins) transformed.gaps_and_learning_plan.quick_wins_1_2_weeks = quickWins;
+        if (mediumHorizon) transformed.gaps_and_learning_plan.medium_horizon_1_2_months = mediumHorizon;
+    }
+
+    // Transform company insights
+    if (data.company_highlights_all || data.company_sources_all) {
+        transformed.company_insights = {};
+        if (data.company_highlights_all) {
+            transformed.company_insights.highlights = data.company_highlights_all
+                .split(/\s*\|\s*/)
+                .filter(s => s.trim());
+        }
+        if (data.company_sources_all) {
+            transformed.company_insights.sources = data.company_sources_all
+                .split(/\s*\|\s*/)
+                .filter(s => s.trim());
+        }
+    }
+
+    return transformed;
+};
+
 const App = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -89,6 +182,12 @@ const App = () => {
                 else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].overall_score !== undefined) {
                     analysisJson = jsonData[0];
                     console.log('Using first array item as analysis:', analysisJson);
+
+                    // Check if LaTeX is in a second array element
+                    if (jsonData.length > 1 && jsonData[1].output) {
+                        latexCode = jsonData[1].output;
+                        console.log('Found LaTeX in second array element');
+                    }
                 }
                 else {
                     console.error('Unrecognized response format:', jsonData);
@@ -100,14 +199,33 @@ const App = () => {
                     latexCode = analysisJson.latex || analysisJson.latex_code;
                 }
 
+                // Also check all array elements for latex/latex_code if we have an array
+                if (!latexCode && Array.isArray(jsonData)) {
+                    for (const item of jsonData) {
+                        if (item.output && typeof item.output === 'string' && item.output.includes('\\documentclass')) {
+                            latexCode = item.output;
+                            console.log('Found LaTeX in array element output field');
+                            break;
+                        }
+                        if (item.latex || item.latex_code) {
+                            latexCode = item.latex || item.latex_code;
+                            console.log('Found LaTeX in array element');
+                            break;
+                        }
+                    }
+                }
+
                 if (!latexCode) {
                     console.warn('No LaTeX code found in response. Analysis will be shown without LaTeX editor.');
                 }
 
+                // Transform flat webhook format to expected structure
+                const transformedAnalysis = transformAnalysisData(analysisJson);
+
                 // Navigate to analysis page with data
                 navigate('/analysis', {
                     state: {
-                        analysisData: analysisJson,
+                        analysisData: transformedAnalysis,
                         latexCode: latexCode,
                         hasLatex: !!latexCode
                     }
