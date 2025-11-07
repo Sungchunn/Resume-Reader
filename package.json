@@ -2,7 +2,8 @@
   "name": "resume-analyzer",
   "version": "1.0.0",
   "private": true,
-  
+  "homepage": "https://sungchunn.github.io/Resume-Reader",
+
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "pdfjs-dist": "^5.4.394",
