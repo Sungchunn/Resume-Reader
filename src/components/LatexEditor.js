@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { compileLatexToPdf } from '../utils/latexCompiler';
@@ -40,40 +40,7 @@ const LatexEditor = ({ initialCode }) => {
         // Auto-compile will be triggered by useEffect
     };
 
-    // Debounce auto-compile when code changes
-    useEffect(() => {
-        if (!latexCode) return;
-
-        // Debounce: wait 2 seconds after user stops typing
-        const timer = setTimeout(() => {
-            handleCompile();
-        }, 2000);
-
-        return () => clearTimeout(timer);
-    }, [latexCode]);
-
-    const handleDownload = () => {
-        const blob = new Blob([latexCode], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'resume.tex';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(latexCode).then(() => {
-            alert('LaTeX code copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-            alert('Failed to copy to clipboard');
-        });
-    };
-
-    const handleCompile = async () => {
+    const handleCompile = useCallback(async () => {
         setCompiling(true);
         setCompileError(null);
 
@@ -100,6 +67,39 @@ const LatexEditor = ({ initialCode }) => {
         } finally {
             setCompiling(false);
         }
+    }, [latexCode, pdfUrl]);
+
+    // Debounce auto-compile when code changes
+    useEffect(() => {
+        if (!latexCode) return;
+
+        // Debounce: wait 2 seconds after user stops typing
+        const timer = setTimeout(() => {
+            handleCompile();
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [latexCode, handleCompile]);
+
+    const handleDownload = () => {
+        const blob = new Blob([latexCode], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'resume.tex';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(latexCode).then(() => {
+            alert('LaTeX code copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
     };
 
     const handleDownloadPdf = () => {
@@ -124,7 +124,7 @@ const LatexEditor = ({ initialCode }) => {
         if (initialCode && !pdfUrl) {
             handleCompile();
         }
-    }, [initialCode]);
+    }, [initialCode, pdfUrl, handleCompile]);
 
     // Cleanup blob URL on unmount
     useEffect(() => {
