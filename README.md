@@ -4,12 +4,27 @@ React-based resume analysis tool that provides scoring, feedback, and an editabl
 
 ## Quick Start
 
+### Frontend Only (without PDF preview)
 ```bash
 npm install
 npm start
 ```
 
 Visit `http://localhost:3000`
+
+### Full Setup (with PDF preview)
+```bash
+# Terminal 1 - Start backend
+cd backend
+npm install
+npm start
+
+# Terminal 2 - Start frontend
+npm install
+npm start
+```
+
+Backend runs on `http://localhost:3001`, Frontend on `http://localhost:3000`
 
 ## How It Works
 
@@ -36,20 +51,23 @@ Visit `http://localhost:3000`
 
 ## PDF Preview Setup
 
-The app shows "Preview Unavailable" because external LaTeX APIs have CORS restrictions. To enable real-time PDF preview:
+The app includes a **local backend server** for real-time PDF compilation!
 
-**Option 1: Setup n8n LaTeX Endpoint** (Recommended)
-- Add LaTeX compilation to your n8n workflow
-- See detailed guide: [docs/LATEX_COMPILATION_SETUP.md](docs/LATEX_COMPILATION_SETUP.md)
+**Option 1: Use Local Backend** (Recommended - Already Included!)
+1. Install LaTeX distribution:
+   - **macOS**: `brew install --cask mactex`
+   - **Ubuntu**: `sudo apt-get install texlive-full`
+   - **Windows**: Install [MiKTeX](https://miktex.org/download)
+2. Start the backend (see Quick Start above)
+3. PDF preview works automatically!
 
-**Option 2: Use Overleaf**
+**Option 2: Use Overleaf** (No LaTeX install needed)
 - Download .tex file → Upload to [Overleaf.com](https://www.overleaf.com)
 - Compile and download PDF there
 
-**Option 3: Compile Locally**
-- Download .tex file
-- Run: `pdflatex resume.tex`
-- Requires LaTeX distribution (TeX Live, MiKTeX, etc.)
+**Option 3: Setup n8n LaTeX Endpoint**
+- Add LaTeX compilation to your n8n workflow
+- See detailed guide: [docs/LATEX_COMPILATION_SETUP.md](docs/LATEX_COMPILATION_SETUP.md)
 
 ## Webhook Data Sent
 
