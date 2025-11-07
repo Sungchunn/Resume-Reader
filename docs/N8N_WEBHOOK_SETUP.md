@@ -104,7 +104,7 @@ The webhook must return JSON with analysis data and LaTeX code.
   ],
   "ats_tips": [
     "Use standard section headers (Experience, Education, Skills)",
-    "Include relevant certifications and tools",
+    "Include relevant certifications and tools)",
     "Optimize keyword density without overstuffing"
   ],
   "summary": "Your resume demonstrates strong technical capabilities and relevant experience. Focus on adding more quantifiable achievements and industry-specific keywords to increase ATS score.",

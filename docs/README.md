@@ -1,210 +1,138 @@
-# Documentation Index
+# Resume Analyzer Documentation
 
-Complete documentation for the Resume Analyzer application with LaTeX editor.
+Welcome to the Resume Analyzer documentation! This folder contains comprehensive guides for understanding, configuring, and troubleshooting the application.
 
-## Quick Links
+## 📚 Documentation Index
 
-### Core Documentation
-- **[LaTeX Workflow Guide](LATEX_WORKFLOW.md)** - How the LaTeX-based resume system works
-- **[LaTeX Compilation Setup](LATEX_COMPILATION_SETUP.md)** - Enable real-time PDF preview (⚠️ Read this if preview unavailable)
-- **[n8n Webhook Setup](N8N_WEBHOOK_SETUP.md)** - Setting up and configuring the webhook backend
-- **[Display Structure Guide](DISPLAY_GUIDE.md)** - Frontend architecture and UI components
+### 🚀 Getting Started
 
-## Getting Started
+**[DUAL_WEBHOOK_GUIDE.md](DUAL_WEBHOOK_GUIDE.md)** ⭐ **Start here!**
+- Dual webhook architecture overview
+- How parallel processing works
+- n8n workflow configuration for both webhooks
+- Testing with curl examples
+- Error handling and troubleshooting
+- Performance benefits and migration guide
 
-New to the project? Start here:
+### 🛣️ Application Architecture
 
-1. **[LaTeX Workflow Guide](LATEX_WORKFLOW.md)** - Understand the overall workflow
-2. **[n8n Webhook Setup](N8N_WEBHOOK_SETUP.md)** - Set up your backend
-3. **[Display Structure Guide](DISPLAY_GUIDE.md)** - Learn about the frontend
+**[ROUTING_GUIDE.md](ROUTING_GUIDE.md)**
+- Multi-page routing with React Router
+- Navigation flow between pages
+- Dark mode implementation with system sync
+- Data flow through router state
+- Browser support and troubleshooting
 
-## Documentation Overview
+### 🔧 n8n Configuration
 
-### LaTeX Workflow Guide
-Learn how the application processes resumes and generates LaTeX code:
-- User input flow
-- Webhook processing
-- Response format
-- Editor features
-- LaTeX compilation options
-- Error handling
-- Customization tips
+**[N8N_WEBHOOK_SETUP.md](N8N_WEBHOOK_SETUP.md)**
+- Webhook node configuration
+- Form data access in n8n
+- Expected response formats
+- CORS settings
+- Common issues and solutions
 
-### n8n Webhook Setup
-Complete guide to configuring the n8n webhook:
-- Webhook configuration
-- Request format
-- Response format
-- Workflow recommendations
-- Testing procedures
-- Security considerations
+**[N8N_RESPONSE_GUIDE.md](N8N_RESPONSE_GUIDE.md)**
+- How to include PDF in webhook response
+- Multiple response format options
+- Storage integration (Google Drive, S3, Cloudinary)
+- Base64 encoding guide
+- Example n8n workflow structure
 
-### Display Structure Guide
-Frontend architecture and UI design:
-- Page structure
-- Component hierarchy
-- Responsive design
-- Color schemes
-- CSS classes
-- State management
-- Navigation flow
-- Accessibility features
+### 🎨 Frontend Display
 
-## Key Features
+**[DISPLAY_GUIDE.md](DISPLAY_GUIDE.md)**
+- Split-screen layout structure
+- Response parsing logic
+- PDF source detection
+- Debugging tips
+- Mobile responsiveness
 
-### User Features
-- Interactive LaTeX editor with syntax highlighting
-- Real-time code editing
-- Dark mode support
-- Copy to clipboard
-- Download as .tex file
-- Comprehensive resume analysis
-- Split-panel view for analysis and editing
+## 🗂️ Documentation Organization
 
-### Technical Features
-- React with React Router
-- Monaco Editor integration
-- Responsive design (mobile, tablet, desktop)
-- CSS variables for theming
-- FormData API for file uploads
-- Blob URL lifecycle management
-- Error handling and validation
-
-## Common Tasks
-
-### Change Webhook URL
-Edit `src/App.js` line 6:
-```javascript
-const UPLOAD_WEBHOOK = 'YOUR_WEBHOOK_URL';
+```
+docs/
+├── README.md                    # This file - documentation index
+├── DUAL_WEBHOOK_GUIDE.md       # ⭐ Main architecture guide
+├── ROUTING_GUIDE.md            # Multi-page routing & dark mode
+├── N8N_WEBHOOK_SETUP.md        # Webhook configuration
+├── N8N_RESPONSE_GUIDE.md       # Response format options
+└── DISPLAY_GUIDE.md            # Frontend display details
 ```
 
-### Customize Editor Theme
-Edit `src/components/LatexEditor.js`:
-```javascript
-const [theme, setTheme] = useState('vs-dark'); // or 'vs-light'
-```
+## 🎯 Quick Links by Task
 
-### Modify Response Format
-See [n8n Webhook Setup](N8N_WEBHOOK_SETUP.md) for response format details.
+### I want to...
 
-### Update UI Colors
-Edit CSS variables in `src/App.css`:
-```css
-:root {
-  --accent-blue: #1890ff;
-  --accent-green: #10b981;
-  /* ... */
-}
-```
+**Set up the webhooks**
+→ Read [DUAL_WEBHOOK_GUIDE.md](DUAL_WEBHOOK_GUIDE.md) first, then [N8N_WEBHOOK_SETUP.md](N8N_WEBHOOK_SETUP.md)
 
-## Architecture
+**Understand the routing**
+→ Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md)
 
-### Frontend Stack
-- React 18
-- React Router v6
-- Monaco Editor
-- CSS with CSS Variables
+**Configure n8n responses**
+→ Read [N8N_RESPONSE_GUIDE.md](N8N_RESPONSE_GUIDE.md)
 
-### Backend
-- n8n workflow automation
-- Webhook-based API
-- AI analysis (OpenAI/Claude/similar)
-- LaTeX generation
+**Debug display issues**
+→ Read [DISPLAY_GUIDE.md](DISPLAY_GUIDE.md)
 
-### File Structure
-```
-src/
-├── App.js                 # Main form and routing
-├── App.css               # Global styles
-├── index.js              # React entry point
-├── components/
-│   └── LatexEditor.js    # LaTeX editor component
-└── pages/
-    ├── AnalysisPage.js   # Analysis + editor view
-    └── PDFPage.js        # Legacy PDF viewer
-```
+**Learn about dark mode**
+→ Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Dark Mode section
 
-## Development
+**Optimize performance**
+→ Read [DUAL_WEBHOOK_GUIDE.md](DUAL_WEBHOOK_GUIDE.md) - Performance section
 
-### Running Locally
-```bash
-npm install
-npm start
-```
+## 🔍 Key Concepts
 
-### Building for Production
-```bash
-npm run build
-```
+### Dual Webhook Architecture
 
-### Testing
-Test the webhook integration:
-```bash
-curl -X POST YOUR_WEBHOOK_URL \
-  -F "job_title=Senior Software Engineer" \
-  -F "job_description=..." \
-  -F "file=@resume.pdf"
-```
+The app uses **two separate webhooks** called in parallel:
+- **Analysis webhook**: Returns JSON with insights
+- **PDF webhook**: Returns improved resume binary
 
-## Troubleshooting
+This design provides:
+- ⚡ Faster processing (parallel execution)
+- 🛡️ Better resilience (graceful degradation)
+- 🔧 Easier maintenance (separation of concerns)
 
-### Common Issues
+### Multi-Page Routing
 
-**LaTeX editor not showing**
-- Check browser console for errors
-- Verify webhook returns `latex` or `latex_code` field
-- Ensure JSON is properly formatted
+Three separate pages with React Router:
+- `/` - Home/Form page
+- `/analysis` - Analysis insights page
+- `/pdf` - PDF viewer page
 
-**Dark mode not working**
-- Verify system theme preferences
-- Check browser supports `prefers-color-scheme`
-- Try manual theme toggle
+### System-Synced Dark Mode
 
-**Upload fails**
-- Check file is PDF format
-- Verify file size < 10MB
-- Test webhook URL is accessible
-- Check network tab for errors
+Automatic theme switching based on OS preference using CSS variables and `prefers-color-scheme` media query.
 
-**Editor performance issues**
-- Disable minimap in editor options
-- Reduce font size
-- Check for memory leaks
+## 📖 Reading Order
 
-## Support
+**For first-time setup:**
 
-For issues or questions:
-1. Check this documentation first
-2. Review browser console errors
-3. Test webhook independently
-4. Verify n8n workflow is active
+1. [DUAL_WEBHOOK_GUIDE.md](DUAL_WEBHOOK_GUIDE.md) - Understand the architecture
+2. [N8N_WEBHOOK_SETUP.md](N8N_WEBHOOK_SETUP.md) - Configure your webhooks
+3. [N8N_RESPONSE_GUIDE.md](N8N_RESPONSE_GUIDE.md) - Set up response format
+4. Test and deploy!
 
-## Contributing
+**For understanding the frontend:**
 
-When making changes:
-1. Update relevant documentation
-2. Test on multiple browsers
-3. Verify responsive design
-4. Check accessibility
-5. Update CHANGELOG
+1. [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Page structure and navigation
+2. [DISPLAY_GUIDE.md](DISPLAY_GUIDE.md) - Display logic and components
 
-## Version History
+## 🆘 Troubleshooting
 
-See main README.md for version history and changelog.
+**Something not working?**
 
-## Additional Resources
+1. Check browser console for errors
+2. Verify both webhooks are responding correctly
+3. Review relevant documentation above
+4. Check the troubleshooting sections in each guide
 
-### LaTeX Resources
-- [Overleaf Documentation](https://www.overleaf.com/learn)
-- [LaTeX Wikibook](https://en.wikibooks.org/wiki/LaTeX)
-- [LaTeX Templates](https://www.latextemplates.com/)
+## 🔄 Updates
 
-### React Resources
-- [React Documentation](https://react.dev/)
-- [React Router](https://reactrouter.com/)
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+All documentation is kept up-to-date with the latest implementation. Last major update: Dual webhook architecture implementation.
 
-### n8n Resources
-- [n8n Documentation](https://docs.n8n.io/)
-- [n8n Community](https://community.n8n.io/)
-- [Webhook Guide](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
+---
+
+**Need help?** Review the guides above or check the main [README.md](../README.md) in the project root.

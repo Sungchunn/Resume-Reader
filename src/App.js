@@ -1,113 +1,24 @@
 // src/App.js
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 
-const UPLOAD_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
-
-// Transform flat webhook format to expected structure
-const transformAnalysisData = (data) => {
-    if (!data) return data;
-
-    // If data is already in the expected format, return as-is
-    if (data.strengths && Array.isArray(data.strengths)) {
-        return data;
-    }
-
-    const transformed = { ...data };
-
-    // Extract category scores (fields starting with cs_)
-    const categoryScores = {};
-    Object.keys(data).forEach(key => {
-        if (key.startsWith('cs_')) {
-            const categoryName = key.replace('cs_', '').replace(/_/g, ' ');
-            categoryScores[categoryName] = data[key];
-        }
-    });
-    if (Object.keys(categoryScores).length > 0) {
-        transformed.category_scores = categoryScores;
-    }
-
-    // Convert numbered fields to arrays
-    const convertToArray = (prefix) => {
-        const items = [];
-        let index = 1;
-        while (data[`${prefix}_${index}`]) {
-            items.push(data[`${prefix}_${index}`]);
-            index++;
-        }
-        // If no numbered fields, check for _all field
-        if (items.length === 0 && data[`${prefix}_all`]) {
-            // Split by | or newline
-            const allText = data[`${prefix}_all`];
-            return allText.split(/\s*\|\s*/).filter(s => s.trim());
-        }
-        return items.length > 0 ? items : undefined;
-    };
-
-    // Transform strengths
-    const strengths = convertToArray('strengths');
-    if (strengths) transformed.strengths = strengths;
-
-    // Transform improvement areas
-    const improvements = convertToArray('improvement');
-    if (improvements) transformed.improvement_areas = improvements;
-
-    // Transform tailored bullets
-    const bullets = convertToArray('tailored_bullet');
-    if (bullets) transformed.tailored_bullets = bullets;
-
-    // Transform keyword recommendations
-    if (data.keyword_recommendations_all) {
-        transformed.keyword_recommendations = data.keyword_recommendations_all
-            .split(/\s*\|\s*/)
-            .filter(s => s.trim());
-    }
-
-    // Transform ATS tips
-    if (data.ats_tips_all) {
-        transformed.ats_tips = data.ats_tips_all
-            .split(/\s*\|\s*/)
-            .filter(s => s.trim());
-    }
-
-    // Transform learning plan
-    const quickWins = convertToArray('quick_win');
-    const mediumHorizon = convertToArray('medium_horizon');
-    if (quickWins || mediumHorizon) {
-        transformed.gaps_and_learning_plan = {};
-        if (quickWins) transformed.gaps_and_learning_plan.quick_wins_1_2_weeks = quickWins;
-        if (mediumHorizon) transformed.gaps_and_learning_plan.medium_horizon_1_2_months = mediumHorizon;
-    }
-
-    // Transform company insights
-    if (data.company_highlights_all || data.company_sources_all) {
-        transformed.company_insights = {};
-        if (data.company_highlights_all) {
-            transformed.company_insights.highlights = data.company_highlights_all
-                .split(/\s*\|\s*/)
-                .filter(s => s.trim());
-        }
-        if (data.company_sources_all) {
-            transformed.company_insights.sources = data.company_sources_all
-                .split(/\s*\|\s*/)
-                .filter(s => s.trim());
-        }
-    }
-
-    return transformed;
-};
+// Two separate webhooks
+const ANALYSIS_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
+const PDF_WEBHOOK = 'https://shreyahubcredo.app.n8n.cloud/webhook-test/20db4528-631d-42c0-858d-930ba828178d';
 
 const App = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [loadingProgress, setLoadingProgress] = useState('');
     const [formData, setFormData] = useState({
         job_title: '',
         job_description: '',
         company_url: '',
         file: null,
     });
+    const objectUrlRef = useRef(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -123,137 +34,117 @@ const App = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setLoadingProgress('Preparing your resume...');
+
+        if (objectUrlRef.current) {
+            URL.revokeObjectURL(objectUrlRef.current);
+            objectUrlRef.current = null;
+        }
 
         try {
             if (!formData.file) throw new Error('Please attach a PDF file.');
 
-            const data = new FormData();
-            data.append('job_title', formData.job_title);
-            data.append('job_description', formData.job_description);
-            data.append('company_url', formData.company_url);
-            data.append('file', formData.file);
+            // Prepare form data for both webhooks (need separate instances)
+            const createFormData = () => {
+                const fd = new FormData();
+                fd.append('job_title', formData.job_title);
+                fd.append('job_description', formData.job_description);
+                fd.append('company_url', formData.company_url);
+                fd.append('file', formData.file);
+                return fd;
+            };
 
-            const response = await fetch(UPLOAD_WEBHOOK, {
-                method: 'POST',
-                body: data,
-                headers: { Accept: 'application/json' },
-            });
+            console.log('Sending to both webhooks...');
+            setLoadingProgress('Analyzing resume and generating improvements...');
 
-            if (!response.ok) {
-                let msg = `Request failed (${response.status})`;
-                try {
-                    const hint = await response.text();
-                    if (hint) msg += ` — ${hint.slice(0, 500)}`;
-                } catch {}
-                throw new Error(msg);
+            // Call both webhooks in parallel with separate FormData instances
+            const [analysisResponse, pdfResponse] = await Promise.all([
+                // Analysis webhook - returns JSON
+                fetch(ANALYSIS_WEBHOOK, {
+                    method: 'POST',
+                    body: createFormData(),
+                    headers: { Accept: 'application/json' },
+                }),
+                // PDF webhook - returns PDF binary
+                fetch(PDF_WEBHOOK, {
+                    method: 'POST',
+                    body: createFormData(),
+                    headers: { Accept: 'application/pdf' },
+                })
+            ]);
+
+            console.log('Received responses from both webhooks');
+
+            // Handle Analysis Response
+            let analysisJson = null;
+            if (!analysisResponse.ok) {
+                throw new Error(`Analysis webhook failed (${analysisResponse.status})`);
             }
 
-            const ct = response.headers.get('content-type') || '';
+            setLoadingProgress('Processing analysis results...');
+            const analysisContentType = analysisResponse.headers.get('content-type') || '';
 
-            // Handle JSON response with analysis data and LaTeX
-            if (ct.includes('json')) {
-                const jsonData = await response.json();
-                console.log('Received JSON response:', jsonData);
+            if (analysisContentType.includes('json')) {
+                const jsonData = await analysisResponse.json();
+                console.log('Received analysis JSON:', jsonData);
 
-                let analysisJson = null;
-                let latexCode = null;
-
-                // Format 1: Array with output field [{ output: "stringified json" }]
+                // Parse different response formats
                 if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].output) {
                     try {
                         analysisJson = JSON.parse(jsonData[0].output);
                         console.log('Parsed analysis from array format:', analysisJson);
-
-                        // Check for LaTeX in array object
-                        if (jsonData[0].latex || jsonData[0].latex_code) {
-                            latexCode = jsonData[0].latex || jsonData[0].latex_code;
-                        }
                     } catch (parseError) {
                         console.error('Failed to parse output field:', parseError);
-                        throw new Error('Failed to parse analysis JSON from output field');
+                        throw new Error('Failed to parse analysis JSON');
                     }
-                }
-                // Format 2: Direct object with analysis fields
-                else if (jsonData && typeof jsonData === 'object' && !Array.isArray(jsonData)) {
+                } else if (jsonData && typeof jsonData === 'object' && !Array.isArray(jsonData)) {
                     analysisJson = jsonData;
                     console.log('Using direct object format:', analysisJson);
-                }
-                // Format 3: Array with direct objects
-                else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].overall_score !== undefined) {
+                } else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].overall_score !== undefined) {
                     analysisJson = jsonData[0];
                     console.log('Using first array item as analysis:', analysisJson);
-
-                    // Check if LaTeX is in a second array element
-                    if (jsonData.length > 1 && jsonData[1].output) {
-                        latexCode = jsonData[1].output;
-                        console.log('Found LaTeX in second array element');
-                    }
+                } else {
+                    console.error('Unrecognized analysis format:', jsonData);
+                    throw new Error('Unexpected analysis response format');
                 }
-                else {
-                    console.error('Unrecognized response format:', jsonData);
-                    throw new Error(`Unexpected response format. Received: ${JSON.stringify(jsonData).substring(0, 200)}...`);
-                }
-
-                // Check for LaTeX in the parsed analysis itself
-                if (!latexCode && (analysisJson.latex || analysisJson.latex_code)) {
-                    latexCode = analysisJson.latex || analysisJson.latex_code;
-                }
-
-                // Also check all array elements for latex/latex_code if we have an array
-                if (!latexCode && Array.isArray(jsonData)) {
-                    for (const item of jsonData) {
-                        if (item.output && typeof item.output === 'string' && item.output.includes('\\documentclass')) {
-                            latexCode = item.output;
-                            console.log('Found LaTeX in array element output field');
-                            break;
-                        }
-                        if (item.latex || item.latex_code) {
-                            latexCode = item.latex || item.latex_code;
-                            console.log('Found LaTeX in array element');
-                            break;
-                        }
-                    }
-                }
-
-                if (!latexCode) {
-                    console.warn('No LaTeX code found in response. Analysis will be shown without LaTeX editor.');
-                }
-
-                // Transform flat webhook format to expected structure
-                const transformedAnalysis = transformAnalysisData(analysisJson);
-
-                // Navigate to analysis page with data
-                navigate('/analysis', {
-                    state: {
-                        analysisData: transformedAnalysis,
-                        latexCode: latexCode,
-                        hasLatex: !!latexCode
-                    }
-                });
+            } else {
+                throw new Error(`Expected JSON from analysis webhook, got ${analysisContentType}`);
             }
-            // Handle PDF response directly
-            else if (ct.includes('pdf')) {
-                const ab = await response.arrayBuffer();
 
-                // Try to read filename from Content-Disposition
-                const cd = response.headers.get('content-disposition') || '';
-                const fnameMatch = /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i.exec(cd);
-                const fileName = fnameMatch ? decodeURIComponent(fnameMatch[1]) : 'improved-resume.pdf';
+            // Handle PDF Response
+            let pdfUrl = null;
+            if (!pdfResponse.ok) {
+                console.warn(`PDF webhook failed (${pdfResponse.status}) - continuing without PDF`);
+            } else {
+                setLoadingProgress('Loading improved resume...');
+                const pdfContentType = pdfResponse.headers.get('content-type') || '';
 
-                // Pass ArrayBuffer instead of creating blob URL here
-                navigate('/pdf', {
-                    state: {
-                        arrayBuffer: ab,
-                        fileName: fileName,
-                        mime: 'application/pdf'
-                    }
-                });
+                if (pdfContentType.includes('pdf')) {
+                    const pdfArrayBuffer = await pdfResponse.arrayBuffer();
+                    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+                    pdfUrl = URL.createObjectURL(pdfBlob);
+                    objectUrlRef.current = pdfUrl;
+                    console.log('Created PDF blob URL:', pdfUrl);
+                } else {
+                    console.warn(`Expected PDF, got ${pdfContentType}`);
+                }
             }
-            else {
-                throw new Error(`Unexpected content type: ${ct}`);
-            }
+
+            console.log('Analysis and PDF processing complete');
+
+            // Navigate to analysis page with both data
+            navigate('/analysis', {
+                state: {
+                    analysisData: analysisJson,
+                    pdfUrl: pdfUrl,
+                    hasPdf: !!pdfUrl
+                }
+            });
+
         } catch (err) {
+            console.error('Error during submission:', err);
             setError(err?.message || 'Something went wrong!');
+            setLoadingProgress('');
         } finally {
             setLoading(false);
         }
@@ -267,6 +158,12 @@ const App = () => {
             <main>
                 <form onSubmit={handleSubmit} className="card" encType="multipart/form-data">
                     {error && <div className="error">{error}</div>}
+                    {loading && loadingProgress && (
+                        <div className="loading-progress">
+                            <div className="loading-spinner"></div>
+                            <p>{loadingProgress}</p>
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="job_title">Job Title</label>
@@ -277,6 +174,7 @@ const App = () => {
                             value={formData.job_title}
                             onChange={handleInputChange}
                             required
+                            disabled={loading}
                         />
                     </div>
 
@@ -289,6 +187,7 @@ const App = () => {
                             placeholder="https://example.com"
                             value={formData.company_url}
                             onChange={handleInputChange}
+                            disabled={loading}
                         />
                     </div>
 
@@ -300,6 +199,7 @@ const App = () => {
                             value={formData.job_description}
                             onChange={handleInputChange}
                             required
+                            disabled={loading}
                         />
                     </div>
 
@@ -312,6 +212,7 @@ const App = () => {
                             accept="application/pdf,.pdf"
                             onChange={handleFileChange}
                             required
+                            disabled={loading}
                         />
                     </div>
 
