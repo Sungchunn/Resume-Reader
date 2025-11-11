@@ -73,10 +73,10 @@ const LatexEditor = ({ initialCode }) => {
     useEffect(() => {
         if (!latexCode) return;
 
-        // Debounce: wait 2 seconds after user stops typing
+        // Debounce: wait 500ms after user stops typing for faster feedback
         const timer = setTimeout(() => {
             handleCompile();
-        }, 2000);
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [latexCode, handleCompile]);

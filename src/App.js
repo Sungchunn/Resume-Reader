@@ -5,11 +5,20 @@ import './App.css';
 
 const UPLOAD_WEBHOOK = process.env.REACT_APP_ANALYSIS_WEBHOOK || 'https://shreyahubcredo.app.n8n.cloud/webhook-test/2227bd6f-2f86-470d-a2d0-d8ff386eb788';
 
-// Transform flat webhook format to expected structure
+// Transform various n8n webhook formats to expected structure
 const transformAnalysisData = (data) => {
     if (!data) return data;
 
-    // If data is already in the expected format, return as-is
+    // Handle Schema V1 format (if n8n implements it)
+    if (data.evaluation) {
+        console.log('Detected Schema V1 format');
+        return {
+            ...data.evaluation,
+            meta: data.meta // Preserve meta if present
+        };
+    }
+
+    // If data is already in the expected flat format, return as-is
     if (data.strengths && Array.isArray(data.strengths)) {
         return data;
     }
@@ -110,6 +119,11 @@ const App = () => {
         file: null,
     });
 
+    // Environment detection
+    const ENV = process.env.REACT_APP_ENVIRONMENT || 'production';
+    const isLocal = ENV === 'local';
+    const isTest = ENV === 'test';
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -160,8 +174,19 @@ const App = () => {
                 let analysisJson = null;
                 let latexCode = null;
 
+                // Handle Schema V1 format first (if n8n implements it)
+                if (jsonData.evaluation && jsonData.evaluation.overall_score !== undefined) {
+                    console.log('Detected Schema V1 response format');
+                    analysisJson = jsonData.evaluation;
+
+                    // Extract LaTeX from Schema V1 format
+                    if (jsonData.latex && jsonData.latex.document) {
+                        latexCode = jsonData.latex.document;
+                        console.log('Found LaTeX in Schema V1 format');
+                    }
+                }
                 // Format 1: Array with output field [{ output: "stringified json" }]
-                if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].output) {
+                else if (Array.isArray(jsonData) && jsonData.length > 0 && jsonData[0].output) {
                     try {
                         analysisJson = JSON.parse(jsonData[0].output);
                         console.log('Parsed analysis from array format:', analysisJson);
@@ -264,6 +289,8 @@ const App = () => {
         <div className="App">
             <header className="App-header">
                 <h1>Resume Analyzer</h1>
+                {isLocal && <span className="env-indicator env-local">🔧 Local Dev</span>}
+                {isTest && <span className="env-indicator env-test">🧪 Test</span>}
             </header>
             <main>
                 <form onSubmit={handleSubmit} className="card" encType="multipart/form-data">
