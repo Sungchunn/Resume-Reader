@@ -22,7 +22,10 @@ jobs:
         run: npm install
 
       - name: Create .env file
-        run: echo "REACT_APP_ANALYSIS_WEBHOOK=${{ secrets.REACT_APP_ANALYSIS_WEBHOOK }}" > .env
+        run: |
+          echo "REACT_APP_ANALYSIS_WEBHOOK=${{ secrets.REACT_APP_ANALYSIS_WEBHOOK }}" > .env
+          echo "REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}" >> .env
+          echo "REACT_APP_ENVIRONMENT=production" >> .env
 
       - name: Build
         run: npm run build
