@@ -1,13 +1,36 @@
 // components/ResultLatex.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { parse } from "latex.js";
 
 export function ResultLatex({ output, styles }) {
     const [source, setSource] = useState(output || "");
+    const [renderError, setRenderError] = useState(null);
+    const previewRef = useRef(null);
 
     // When a new webhook response arrives, reset editor content
     useEffect(() => {
         setSource(output || "");
     }, [output]);
+
+    // Function to render LaTeX using latex.js
+    const handleRenderLatex = () => {
+        setRenderError(null);
+
+        if (!previewRef.current) return;
+
+        try {
+            // Parse LaTeX source and generate DOM fragment
+            const generator = parse(source, { generator: "html" });
+            const fragment = generator.domFragment();
+
+            // Clear previous content and append new rendered content
+            previewRef.current.innerHTML = "";
+            previewRef.current.appendChild(fragment);
+        } catch (error) {
+            setRenderError(error.message || "Failed to render LaTeX");
+            console.error("LaTeX rendering error:", error);
+        }
+    };
 
     return (
         <div style={styles.latexInner}>
@@ -19,6 +42,24 @@ export function ResultLatex({ output, styles }) {
                         preview styled like a PDF page.
                     </p>
                 </div>
+                <button
+                    onClick={handleRenderLatex}
+                    style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#4f46e5",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        transition: "background-color 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = "#4338ca"}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = "#4f46e5"}
+                >
+                    Render LaTeX
+                </button>
             </div>
 
             <div style={styles.latexGrid}>
@@ -32,17 +73,38 @@ export function ResultLatex({ output, styles }) {
                     />
                 </div>
 
-                {/* Right – visual preview (text-based “PDF” look for now) */}
+                {/* Right – visual preview with rendered LaTeX */}
                 <div style={styles.latexPreviewPane}>
                     <div style={styles.latexPreviewPage}>
                         <div style={styles.latexPreviewHeader}>
                             <span style={styles.latexPreviewBadge}>Preview</span>
                             <span style={styles.latexPreviewHint}>
-                                This is a live preview of the LaTeX source. Full PDF
-                                rendering can be wired up later.
+                                Click "Render LaTeX" to see the rendered output.
                             </span>
                         </div>
-                        <pre style={styles.latexPreviewCode}>{source}</pre>
+                        {renderError && (
+                            <div style={{
+                                padding: "12px",
+                                backgroundColor: "#fee2e2",
+                                color: "#991b1b",
+                                borderRadius: "6px",
+                                marginBottom: "12px",
+                                fontSize: "14px"
+                            }}>
+                                <strong>Error:</strong> {renderError}
+                            </div>
+                        )}
+                        <div
+                            ref={previewRef}
+                            style={{
+                                ...styles.latexPreviewCode,
+                                padding: "20px",
+                                lineHeight: "1.6",
+                                overflow: "auto"
+                            }}
+                        >
+                            {/* Rendered LaTeX will appear here */}
+                        </div>
                     </div>
                 </div>
             </div>
