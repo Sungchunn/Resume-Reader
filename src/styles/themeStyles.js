@@ -6,6 +6,8 @@ export function getStyles(isDarkMode) {
     const subTextColor = isDarkMode ? "#9ca3af" : "#6b7280";
     const codeBg = isDarkMode ? "#020617" : "#f3f4f6";
 
+    const MAX_WIDTH = 980; // shared by header + main card
+
     return {
         page: {
             fontFamily:
@@ -15,29 +17,106 @@ export function getStyles(isDarkMode) {
             color: textColor,
         },
 
+        /* -------- HEADER (centered block, left-aligned text) -------- */
         header: {
-            padding: "20px 24px",
-            borderBottom: `1px solid ${borderColor}`,
-            background: bgCard,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
             position: "sticky",
             top: 0,
-            zIndex: 10,
+            zIndex: 20,
+            borderBottom: `1px solid ${borderColor}`,
+            backdropFilter: "blur(10px)",
+            background: isDarkMode
+                ? "rgba(2,6,23,0.95)"
+                : "rgba(249,250,251,0.96)",
+            width: "100%",
         },
 
+        headerInner: {
+            maxWidth: MAX_WIDTH,
+            margin: "0 auto",
+            padding: "14px 24px 16px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
+            textAlign: "left",
+            gap: 4,
+        },
+
+        headerTopRow: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 6,
+            width: "100%",
+        },
+
+        badge: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            padding: "3px 8px",
+            borderRadius: 999,
+            border: `1px solid ${borderColor}`,
+            fontSize: 10,
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+            fontWeight: 600,
+        },
+        badgeDot: {
+            width: 6,
+            height: 6,
+            borderRadius: "999px",
+            background: "#4f46e5",
+        },
+        badgeText: {
+            fontWeight: 600,
+        },
+        badgeTag: {
+            padding: "1px 4px",
+            borderRadius: 999,
+            background: isDarkMode ? "#1e293b" : "#eef2ff",
+            fontSize: 9,
+            fontWeight: 500,
+        },
+
+        headerTitle: {
+            margin: 0,
+            fontSize: 22,
+            fontWeight: 700,
+            lineHeight: 1.2,
+        },
+
+        headerSubtitle: {
+            margin: 0,
+            marginTop: 4,
+            fontSize: 13,
+            lineHeight: 1.35,
+            maxWidth: 720,
+            color: subTextColor,
+        },
+
+        // move the theme hint lower using relative positioning
+        headerThemeHint: {
+            fontSize: 12,
+            color: subTextColor,
+            whiteSpace: "nowrap",
+            position: "relative",
+            top: 8,        // push it down
+            marginRight: 4,
+        },
+
+        /* ---------------- MAIN LAYOUT ---------------- */
         main: {
             width: "100%",
             display: "flex",
             justifyContent: "center",
-            padding: "32px 16px 48px",
+            padding: "28px 16px 48px",
         },
 
         // main card with two columns
         card: {
-            maxWidth: 980,
+            maxWidth: MAX_WIDTH,
             width: "100%",
+            margin: "0 auto",
             background: bgCard,
             border: `1px solid ${borderColor}`,
             borderRadius: 24,
@@ -54,9 +133,11 @@ export function getStyles(isDarkMode) {
             minWidth: 0,
         },
 
+        // offset entire tips column so the top aligns with the Job Title label
         tipsColumn: {
             flex: 2,
-            minWidth: 220,
+            minWidth: 240,
+            marginTop: 28,   // play with 24–32 if you want finer tuning
         },
 
         h2: { marginBottom: 8, fontSize: 20 },
@@ -142,55 +223,6 @@ export function getStyles(isDarkMode) {
             fontSize: 13,
         },
 
-        // header extras
-        headerTopRow: {
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 8,
-        },
-        badge: {
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "4px 10px",
-            borderRadius: 999,
-            border: `1px solid ${borderColor}`,
-            fontSize: 11,
-            textTransform: "uppercase",
-            letterSpacing: 0.06,
-        },
-        badgeDot: {
-            width: 6,
-            height: 6,
-            borderRadius: "999px",
-            background: "#4f46e5",
-        },
-        badgeText: {
-            fontWeight: 600,
-        },
-        badgeTag: {
-            padding: "2px 6px",
-            borderRadius: 999,
-            background: isDarkMode ? "#020617" : "#eef2ff",
-            fontSize: 10,
-            fontWeight: 500,
-        },
-        headerTitle: {
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 700,
-        },
-        headerSubtitle: {
-            marginTop: 4,
-            fontSize: 14,
-            color: subTextColor,
-        },
-        headerThemeHint: {
-            fontSize: 12,
-            color: subTextColor,
-        },
-
         // tips
         tipsCard: {
             borderRadius: 18,
@@ -227,7 +259,6 @@ export function getStyles(isDarkMode) {
             color: subTextColor,
         },
 
-        // keep your existing code styles etc
         pre: {
             background: codeBg,
             border: `1px solid ${borderColor}`,

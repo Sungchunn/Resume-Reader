@@ -29,23 +29,27 @@ export default function App() {
     return (
         <div style={styles.page}>
             <header style={styles.header}>
-                <div style={styles.headerTopRow}>
-          <span style={styles.badge}>
-            <span style={styles.badgeDot} />
-            <span style={styles.badgeText}>Resume Studio</span>
-            <span style={styles.badgeTag}>Beta</span>
-          </span>
-                    <div style={styles.headerThemeHint}>
-                        ● Theme synced to system ({isDarkMode ? "Dark" : "Light"} mode)
-                    </div>
-                </div>
+                <div style={styles.headerInner}>
+                    <div style={styles.headerTopRow}>
+            <span style={styles.badge}>
+                <span style={styles.badgeDot} />
+                <span style={styles.badgeText}>Resume Studio</span>
+                <span style={styles.badgeTag}>Beta</span>
+            </span>
 
-                <h1 style={styles.headerTitle}>AI ATS Resume Optimizer</h1>
-                <p style={styles.headerSubtitle}>
-                    Connect your resume, job title, and job description to an AI agent
-                    running in n8n. It evaluates the match and returns editable LaTeX for
-                    an ATS-optimized resume tailored to that specific role.
-                </p>
+                        <div style={styles.headerThemeHint}>
+                            ● Theme synced to system ({isDarkMode ? "Dark" : "Light"} mode)
+                        </div>
+                    </div>
+
+                    <h1 style={styles.headerTitle}>AI ATS Resume Optimizer</h1>
+
+                    <p style={styles.headerSubtitle}>
+                        Connect your resume, job title, and job description to an AI agent
+                        running in n8n. It evaluates the match and returns editable LaTeX
+                        for an ATS-optimized resume tailored to that specific role.
+                    </p>
+                </div>
             </header>
 
             <main style={styles.main}>
