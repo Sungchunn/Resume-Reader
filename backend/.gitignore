@@ -1,0 +1,10 @@
+node_modules/
+logs/
+latex-inputs/
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+.DS_Store
+.env
