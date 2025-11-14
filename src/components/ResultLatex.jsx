@@ -1,6 +1,6 @@
 // components/ResultLatex.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { parse } from "latex.js";
+import { parse, HtmlGenerator } from "latex.js";
 
 export function ResultLatex({ output, styles }) {
     const [source, setSource] = useState(output || "");
@@ -19,9 +19,12 @@ export function ResultLatex({ output, styles }) {
         if (!previewRef.current) return;
 
         try {
-            // Parse LaTeX source and generate DOM fragment
-            const generator = parse(source, { generator: "html" });
-            const fragment = generator.domFragment();
+            // Create HTML generator and parse LaTeX
+            const generator = new HtmlGenerator({ hyphenate: false });
+            const doc = parse(source, { generator });
+
+            // Get the DOM fragment
+            const fragment = doc.domFragment();
 
             // Clear previous content and append new rendered content
             previewRef.current.innerHTML = "";
