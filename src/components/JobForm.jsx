@@ -1,4 +1,3 @@
-// components/JobForm.jsx
 import React, { useState } from "react";
 
 export function JobForm({ onSubmit, submitting, styles }) {
@@ -11,10 +10,10 @@ export function JobForm({ onSubmit, submitting, styles }) {
         setError("");
 
         if (!roleName.trim()) {
-            return setError("Please enter the Upwork role name / job title.");
+            return setError("Please enter the job title / role name.");
         }
         if (!jobDescription.trim()) {
-            return setError("Please paste the Upwork job description.");
+            return setError("Please paste the full job description.");
         }
         if (!file) {
             return setError("Please upload your resume as a PDF file.");
@@ -28,104 +27,106 @@ export function JobForm({ onSubmit, submitting, styles }) {
     };
 
     return (
-        <section style={styles.cardShell}>
-            <div style={styles.cardInner}>
-                {/* LEFT COLUMN – form */}
-                <div style={styles.formColumn}>
-                    <h2 style={styles.h2}>Job Details</h2>
-                    <p style={styles.formIntro}>
-                        Start with a precise role name and the full job description. The
-                        more context, the better the proposal.
-                    </p>
+        <section style={styles.card}>
+            {/* LEFT COLUMN – form */}
+            <div style={styles.formColumn}>
+                <h2 style={styles.h2}>Job &amp; Resume Details</h2>
+                <p style={styles.formIntro}>
+                    Upload the resume you want to improve, then add the job title and
+                    description you are applying for. The AI agent evaluates your resume
+                    against the role and generates an ATS-friendly LaTeX version you can
+                    edit in real time.
+                </p>
 
-                    <label style={styles.label}>Upwork role name / job title *</label>
-                    <input
-                        value={roleName}
-                        onChange={(e) => setRoleName(e.target.value)}
-                        placeholder="e.g., SQL + Python Reporting Analyst Interview Expert"
-                        style={styles.input}
-                    />
+                <label style={styles.label}>Job title / role name *</label>
+                <input
+                    value={roleName}
+                    onChange={(e) => setRoleName(e.target.value)}
+                    placeholder="e.g., Data Engineer – Food Waste Analytics"
+                    style={styles.input}
+                />
 
-                    <label style={styles.label}>Upwork job description *</label>
-                    <textarea
-                        value={jobDescription}
-                        onChange={(e) => setJobDescription(e.target.value)}
-                        placeholder="Paste the Upwork job description here..."
-                        style={styles.textarea}
-                    />
+                <label style={styles.label}>Job description *</label>
+                <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste the full job description here..."
+                    style={styles.textarea}
+                />
 
-                    <label style={styles.label}>Resume (PDF) *</label>
-                    <input
-                        type="file"
-                        accept="application/pdf"
-                        style={styles.fileInput}
-                        onChange={(e) => {
-                            const selected = e.target.files?.[0] || null;
-                            if (!selected) {
-                                setFile(null);
-                                return;
-                            }
-                            if (selected.type !== "application/pdf") {
-                                setError("Please upload a PDF file.");
-                                e.target.value = "";
-                                setFile(null);
-                                return;
-                            }
-                            setError("");
-                            setFile(selected);
-                        }}
-                    />
-                    {file && (
-                        <div style={styles.fileMeta}>
-                            Selected file: <strong>{file.name}</strong>
-                        </div>
-                    )}
-
-                    {error && <div style={styles.error}>{error}</div>}
-
-                    <button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        style={{
-                            ...styles.primaryButton,
-                            opacity: submitting ? 0.7 : 1,
-                            cursor: submitting ? "not-allowed" : "pointer",
-                        }}
-                    >
-                        {submitting ? "Processing CV Response…" : "Generate CV Response"}
-                    </button>
-                </div>
-
-                {/* RIGHT COLUMN – tips */}
-                <aside style={styles.tipsColumn}>
-                    <div style={styles.tipsCard}>
-                        <h3 style={styles.tipsTitle}>Tips for best results</h3>
-                        <ul style={styles.tipsList}>
-                            <li>
-                                Include tech stack, deliverables, and any metrics mentioned in
-                                the job post.
-                            </li>
-                            <li>
-                                Mention timeline, budget, or collaboration style if the client
-                                specifies it.
-                            </li>
-                            <li>
-                                Upload the same resume you actually use on Upwork so the agent
-                                can map it cleanly.
-                            </li>
-                        </ul>
-
-                        <div style={styles.tipsSubCard}>
-                            <div style={styles.tipsSubTitle}>What you get</div>
-                            <p style={styles.tipsSubText}>
-                                Structured proposal sections, a Mermaid workflow diagram, and
-                                tailored talking points you can paste directly into your Upwork
-                                proposal.
-                            </p>
-                        </div>
+                <label style={styles.label}>Resume (PDF) *</label>
+                <input
+                    type="file"
+                    accept="application/pdf"
+                    style={styles.fileInput}
+                    onChange={(e) => {
+                        const selected = e.target.files?.[0] || null;
+                        if (!selected) {
+                            setFile(null);
+                            return;
+                        }
+                        if (selected.type !== "application/pdf") {
+                            setError("Please upload a PDF file.");
+                            e.target.value = "";
+                            setFile(null);
+                            return;
+                        }
+                        setError("");
+                        setFile(selected);
+                    }}
+                />
+                {file && (
+                    <div style={styles.fileMeta}>
+                        Selected file: <strong>{file.name}</strong>
                     </div>
-                </aside>
+                )}
+
+                {error && <div style={styles.error}>{error}</div>}
+
+                <button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    style={{
+                        ...styles.primaryButton,
+                        opacity: submitting ? 0.7 : 1,
+                        cursor: submitting ? "not-allowed" : "pointer",
+                    }}
+                >
+                    {submitting
+                        ? "Analyzing resume and generating LaTeX…"
+                        : "Evaluate & Generate ATS Resume"}
+                </button>
             </div>
+
+            {/* RIGHT COLUMN – tips */}
+            <aside style={styles.tipsColumn}>
+                <div style={styles.tipsCard}>
+                    <h3 style={styles.tipsTitle}>Tips for best results</h3>
+                    <ul style={styles.tipsList}>
+                        <li>
+                            Use the exact job title from the posting so the agent can align
+                            your resume language with the role.
+                        </li>
+                        <li>
+                            Paste the complete job description, including responsibilities,
+                            requirements, and any listed metrics or tools.
+                        </li>
+                        <li>
+                            Upload the resume you actually use today so the evaluation and
+                            LaTeX output reflect your real profile.
+                        </li>
+                    </ul>
+
+                    <div style={styles.tipsSubCard}>
+                        <div style={styles.tipsSubTitle}>What you get</div>
+                        <p style={styles.tipsSubText}>
+                            A structured evaluation of how well your resume matches the job,
+                            plus editable LaTeX source for an ATS-optimized resume that you
+                            can tweak and export for applications.
+                        </p>
+                    </div>
+                </div>
+            </aside>
         </section>
     );
 }

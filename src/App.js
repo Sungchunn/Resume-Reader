@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useState } from "react";
 import { uploadJob } from "./api/upload";
 import { JobForm } from "./components/JobForm";
@@ -32,8 +31,8 @@ export default function App() {
             <header style={styles.header}>
                 <div style={styles.headerTopRow}>
           <span style={styles.badge}>
-            <span style={styles.badgeDot}></span>
-            <span style={styles.badgeText}>Proposal Studio</span>
+            <span style={styles.badgeDot} />
+            <span style={styles.badgeText}>Resume Studio</span>
             <span style={styles.badgeTag}>Beta</span>
           </span>
                     <div style={styles.headerThemeHint}>
@@ -41,10 +40,11 @@ export default function App() {
                     </div>
                 </div>
 
-                <h1 style={styles.headerTitle}>Upwork Proposal Analyzer</h1>
+                <h1 style={styles.headerTitle}>AI ATS Resume Optimizer</h1>
                 <p style={styles.headerSubtitle}>
-                    Paste an Upwork job and generate a structured, AI-tailored CV response
-                    with a visual workflow diagram.
+                    Connect your resume, job title, and job description to an AI agent
+                    running in n8n. It evaluates the match and returns editable LaTeX for
+                    an ATS-optimized resume tailored to that specific role.
                 </p>
             </header>
 
