@@ -1,3 +1,4 @@
+// styles/themeStyles.js
 export function getStyles(isDarkMode) {
     const bgPage = isDarkMode ? "#020617" : "#f9fafb";
     const bgCard = isDarkMode ? "#020617" : "#ffffff";
@@ -100,7 +101,7 @@ export function getStyles(isDarkMode) {
             color: subTextColor,
             whiteSpace: "nowrap",
             position: "relative",
-            top: 8,        // push it down
+            top: 8, // push it down
             marginRight: 4,
         },
 
@@ -109,13 +110,13 @@ export function getStyles(isDarkMode) {
             width: "100%",
             display: "flex",
             justifyContent: "center",
-            padding: "28px 16px 48px",
+            padding: "28px 0 48px",
         },
 
         // main card with two columns
         card: {
-            maxWidth: MAX_WIDTH,
-            width: "100%",
+            maxWidth: "86vw",
+            width: "86vw",
             margin: "0 auto",
             background: bgCard,
             border: `1px solid ${borderColor}`,
@@ -137,7 +138,7 @@ export function getStyles(isDarkMode) {
         tipsColumn: {
             flex: 2,
             minWidth: 240,
-            marginTop: 28,   // play with 24–32 if you want finer tuning
+            marginTop: 28, // tweak 24–32 for fine-tuning
         },
 
         h2: { marginBottom: 8, fontSize: 20 },
@@ -213,6 +214,15 @@ export function getStyles(isDarkMode) {
             boxShadow: "0 12px 30px rgba(79,70,229,0.45)",
         },
 
+        secondaryButton: {
+            borderRadius: 999,
+            padding: "8px 14px",
+            border: `1px solid ${borderColor}`,
+            background: isDarkMode ? "#020617" : "#ffffff",
+            fontSize: 13,
+            cursor: "pointer",
+        },
+
         error: {
             background: isDarkMode ? "#450a0a" : "#fef2f2",
             color: isDarkMode ? "#fecaca" : "#991b1b",
@@ -266,6 +276,202 @@ export function getStyles(isDarkMode) {
             padding: 12,
             fontSize: 12,
             maxHeight: 400,
+            overflow: "auto",
+            whiteSpace: "pre-wrap",
+        },
+
+        sectionBlock: {
+            marginTop: 18,
+            paddingTop: 14,
+            borderTop: `1px solid ${borderColor}`,
+        },
+        sectionTitle: {
+            margin: 0,
+            marginBottom: 6,
+            fontSize: 15,
+            fontWeight: 600,
+            color: textColor,
+        },
+        sectionBody: {
+            fontSize: 14,
+            color: textColor,
+        },
+        sectionNote: {
+            fontSize: 12,
+            color: subTextColor,
+            marginTop: 2,
+            marginBottom: 10,
+        },
+
+        resultGrid: {
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+            gap: 20,
+            marginTop: 8,
+        },
+        resultPane: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            minWidth: 0,
+        },
+        previewHeaderRow: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+        },
+        previewLabel: {
+            fontSize: 12,
+            textTransform: "uppercase",
+            letterSpacing: 0.08,
+            color: subTextColor,
+            fontWeight: 600,
+        },
+        latexPreview: {
+            borderRadius: 12,
+            border: `1px solid ${borderColor}`,
+            padding: 12,
+            background: bgCard,
+            maxHeight: 520,
+            overflow: "auto",
+        },
+        codeBlock: {
+            marginTop: 4,
+            background: codeBg,
+            border: `1px solid ${borderColor}`,
+            borderRadius: 10,
+            padding: 12,
+            fontSize: 12,
+            maxHeight: 520,
+            overflow: "auto",
+            whiteSpace: "pre-wrap",
+        },
+
+        /* ---------- NEW: stacked evaluation + LaTeX editor/preview ---------- */
+
+        // container for top evaluation card + bottom LaTeX panel
+        resultLayout: {
+            width: "86%",
+            maxWidth: "86vw",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+        },
+
+        // Bottom LaTeX shell (overall card)
+        latexShell: {
+            width: "86vw",
+            maxWidth: "86vw",
+            margin: "0 auto",
+            background: bgCard,
+            borderRadius: 24,
+            border: `1px solid ${borderColor}`,
+            padding: 20,
+            boxShadow: isDarkMode
+                ? "0 22px 60px rgba(15,23,42,0.85)"
+                : "0 22px 60px rgba(15,23,42,0.12)",
+        },
+
+        latexInner: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+        },
+
+        latexHeaderRow: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 12,
+        },
+
+        latexGrid: {
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 1fr)",
+            gap: 20,
+            alignItems: "stretch",
+        },
+
+        latexEditorPane: {
+            display: "flex",
+            flexDirection: "column",
+        },
+
+        latexTextarea: {
+            marginTop: 4,
+            width: "100%",
+            minHeight: 380,
+            borderRadius: 12,
+            border: `1px solid ${borderColor}`,
+            padding: "10px 12px",
+            fontFamily:
+                "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace",
+            fontSize: 13,
+            lineHeight: 1.5,
+            background: isDarkMode ? "#020617" : "#ffffff",
+            color: textColor,
+            boxSizing: "border-box",
+            resize: "vertical",
+            outline: "none",
+        },
+
+        latexPreviewPane: {
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "center",
+        },
+
+        latexPreviewPage: {
+            width: "100%",
+            maxWidth: 460,
+            background: "#ffffff",
+            borderRadius: 12,
+            border: `1px solid ${borderColor}`,
+            boxShadow: isDarkMode
+                ? "0 18px 40px rgba(0,0,0,0.75)"
+                : "0 18px 40px rgba(15,23,42,0.18)",
+            padding: 16,
+            boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            overflow: "hidden",
+        },
+
+        latexPreviewHeader: {
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+        },
+
+        latexPreviewBadge: {
+            alignSelf: "flex-start",
+            fontSize: 11,
+            padding: "2px 8px",
+            borderRadius: 999,
+            border: `1px solid ${borderColor}`,
+            background: isDarkMode ? "#0f172a" : "#eef2ff",
+        },
+
+        latexPreviewHint: {
+            fontSize: 11,
+            color: subTextColor,
+        },
+
+        latexPreviewCode: {
+            margin: 0,
+            marginTop: 4,
+            padding: 10,
+            borderRadius: 10,
+            background: codeBg,
+            border: `1px solid ${borderColor}`,
+            fontFamily:
+                "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace",
+            fontSize: 12,
+            lineHeight: 1.4,
+            maxHeight: 420,
             overflow: "auto",
             whiteSpace: "pre-wrap",
         },

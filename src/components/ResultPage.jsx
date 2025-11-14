@@ -1,5 +1,7 @@
 // components/ResultPage.jsx
 import React from "react";
+import { ResultEvaluation } from "./ResultEvaluation";
+import { ResultLatex } from "./ResultLatex";
 
 export function ResultPage({ result, onBack, roleName, styles }) {
     if (!result) {
@@ -16,94 +18,107 @@ export function ResultPage({ result, onBack, roleName, styles }) {
         );
     }
 
-    const item = Array.isArray(result) ? result[0] : result;
+    // Normalise result into an array
+    const arrayResult = Array.isArray(result) ? result : [result];
+
+    // LaTeX output comes from the first item
+    const latexOutput = arrayResult[0]?.output || "";
+
+    // Evaluation object is the one that has overall_score
+    const evalItem =
+        arrayResult.find((it) => typeof it.overall_score === "number") || {};
 
     const {
-        painPointExtraction,
-        technicalSolution,
-        workflowMermaid,
-        relevantExperience,
-        solutionSummary,
-        timeline,
-        callToAction,
-    } = item || {};
+        overall_score,
+        strengths_all,
+        improvement_areas_all,
+        keyword_recommendations_all,
+        quick_wins_all,
+        medium_horizon_all,
+        ats_tips_all,
+        summary,
+        ...restEval
+    } = evalItem;
 
-    const renderTextWithLineBreaks = (text) => {
-        if (!text) return null;
-        return text.split("\n").map((line, idx) => (
-            <p key={idx} style={{ margin: "4px 0", lineHeight: 1.5 }}>
-                {line}
-            </p>
-        ));
+    const splitPiped = (text) =>
+        text ? text.split("|").map((t) => t.trim()).filter(Boolean) : [];
+
+    const strengths = splitPiped(strengths_all);
+    const improvements = splitPiped(improvement_areas_all);
+    const keywords = splitPiped(keyword_recommendations_all);
+    const quickWins = splitPiped(quick_wins_all);
+    const mediumHorizon = splitPiped(medium_horizon_all);
+    const atsTips = splitPiped(ats_tips_all);
+
+    const scoreEntries = Object.entries(restEval)
+        .filter(
+            ([key, value]) =>
+                key.startsWith("cs_") && typeof value === "number" && !Number.isNaN(value)
+        )
+        .map(([key, value]) => {
+            const label = key
+                .replace(/^cs_/, "")
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (ch) => ch.toUpperCase());
+            return { label, value };
+        });
+
+    const evaluation = {
+        overallScore: overall_score,
+        summary,
+        strengths,
+        improvements,
+        keywords,
+        quickWins,
+        mediumHorizon,
+        atsTips,
+        scoreEntries,
     };
 
     return (
-        <section style={{ ...styles.card, maxWidth: 900 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
-                    <h2 style={styles.h2}>AI CV Response Overview</h2>
-                    {roleName && (
-                        <div style={styles.targetRole}>
-                            Target Role: <strong>{roleName}</strong>
-                        </div>
-                    )}
-                </div>
-                <button onClick={onBack} style={styles.secondaryButton}>
-                    ← Back to Job Input
-                </button>
-            </div>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Pain Point Extraction</h3>
-                <div style={styles.sectionBody}>
-                    {renderTextWithLineBreaks(painPointExtraction)}
-                </div>
-            </section>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Technical Solution</h3>
-                <div style={styles.sectionBody}>
-                    {renderTextWithLineBreaks(technicalSolution)}
-                </div>
-            </section>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Workflow Diagram (Mermaid)</h3>
-                <p style={styles.sectionHelpText}>
-                    Copy this code into a Mermaid-compatible viewer (or a future diagram
-                    component) to render the hiring workflow.
-                </p>
-                <pre style={styles.codeBlock}>{workflowMermaid}</pre>
-            </section>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Relevant Experience Mapping</h3>
-                <ul style={styles.list}>
-                    {Array.isArray(relevantExperience) &&
-                        relevantExperience.map((exp, idx) => (
-                            <li key={idx} style={styles.listItem}>
-                                {exp}
-                            </li>
-                        ))}
-                </ul>
-            </section>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Solution Summary</h3>
-                <div style={styles.sectionBody}>
-                    {renderTextWithLineBreaks(solutionSummary)}
-                </div>
-            </section>
-
-            <section style={styles.sectionBlock}>
-                <h3 style={styles.sectionTitle}>Timeline & Next Steps</h3>
-                <div style={styles.sectionBody}>{renderTextWithLineBreaks(timeline)}</div>
-                {callToAction && (
-                    <div style={{ marginTop: 8, fontWeight: 600 }}>
-                        {renderTextWithLineBreaks(callToAction)}
+        <div style={styles.resultLayout}>
+            {/* Top card – ATS evaluation */}
+            <section
+                style={{
+                    ...styles.card,
+                    width: "100%",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 12,
+                        marginBottom: 12,
+                    }}
+                >
+                    <div>
+                        <h2 style={styles.h2}>ATS Match Evaluation</h2>
+                        {roleName && (
+                            <div
+                                style={{
+                                    marginTop: 4,
+                                    fontSize: 13,
+                                    color: "#6b7280",
+                                }}
+                            >
+                                Target role: <strong>{roleName}</strong>
+                            </div>
+                        )}
                     </div>
-                )}
+                    <button onClick={onBack} style={styles.secondaryButton}>
+                        ← Back to Job Input
+                    </button>
+                </div>
+
+                <ResultEvaluation evaluation={evaluation} styles={styles} />
             </section>
-        </section>
+
+            {/* Bottom split – LaTeX editor + preview */}
+            <section style={styles.latexShell}>
+                <ResultLatex output={latexOutput} styles={styles} />
+            </section>
+        </div>
     );
 }
