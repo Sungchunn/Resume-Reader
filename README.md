@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+# Resume Reader - ATS Optimization Web App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An AI-powered web application that analyzes resumes against job descriptions and generates optimized, ATS-friendly LaTeX resumes with detailed feedback.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+Resume Reader helps job seekers optimize their resumes for Applicant Tracking Systems (ATS). Simply upload your resume, provide a job title and description, and receive:
 
-### `npm start`
+- **ATS Match Score** - Comprehensive evaluation of how well your resume matches the job
+- **Detailed Feedback** - Strengths, improvements needed, and keyword recommendations
+- **Optimized LaTeX Resume** - AI-generated LaTeX code with real-time editing and preview
+- **Professional Tips** - Actionable advice to improve your application
 
-Runs the app in the development mode.\
+## Screenshots
+
+### Job Input Form
+![Job Input Form](./assets/webapp.png)
+
+### ATS Evaluation Results
+![ATS Results](./assets/result%20page.png)
+
+### n8n Workflow Integration
+![n8n Workflow](./assets/n8n.png)
+
+## How It Works
+
+1. **Input** - Enter the job title, job description, and upload your resume (PDF)
+2. **AI Processing** - The app sends your data to an n8n workflow that uses AI agents to analyze and optimize
+3. **Results** - Receive a detailed ATS evaluation with scoring and recommendations
+4. **LaTeX Editor** - Edit and preview the AI-generated LaTeX resume in a split-pane editor
+
+## Tech Stack
+
+- **Frontend**: React 19.2.0
+- **Backend**: n8n workflow automation with AI agents
+- **LaTeX**: latex.js for document rendering
+- **Styling**: Custom theme system with light/dark mode support
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm installed
+- n8n workflow endpoint configured (see `.env` file)
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+Run the app in development mode:
+
+```bash
+npm start
+```
+
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Build
 
-### `npm test`
+Build the app for production:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run build
+```
 
-### `npm run build`
+Builds the app to the `build` folder, optimized and minified for deployment.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Environment Variables
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Create a `.env` file in the root directory:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+REACT_APP_N8N_WEBHOOK_URL=your_webhook_url_here
+```
 
-### `npm run eject`
+## Project Structure
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+src/
+├── api/
+│   └── upload.js          # n8n webhook integration
+├── components/
+│   ├── JobForm.jsx        # Job input form
+│   ├── ResultPage.jsx     # Results container
+│   ├── ResultEvaluation.jsx  # ATS scoring display
+│   └── ResultLatex.jsx    # LaTeX editor & preview
+├── styles/
+│   └── themeStyles.js     # Centralized theme system
+└── App.js                 # Main app with routing
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## License
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Private project - All rights reserved
